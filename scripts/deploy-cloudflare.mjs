@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 /**
- * 一键部署到 Cloudflare Pages：资源 → 建表 → 导入内容 → 构建 → 部署
+ * 部署到 Cloudflare Workers（本地一条命令，或 Workers Builds 自动执行）
+ *
+ * 流程：解析/创建 D1 R2 绑定 → 应用 migrations 建表 → 导入 content/ → 构建前端 → 部署
  *
  * 用法:
- *   npm run cf:deploy               # 全流程
- *   npm run cf:deploy -- --dry-run  # 只打印计划
- *   npm run cf:deploy -- --skip-import   # 内容已是最新，只建表 + 构建 + 部署
- *   npm run cf:deploy -- --skip-build    # 复用已有 dist
- *
- * 前置: npx wrangler login
+ *   npm run cf:deploy                 全流程
+ *   npm run cf:deploy -- --dry-run    只打印计划
+ *   npm run cf:deploy -- --skip-import    内容未变时跳过导入
+ *   npm run cf:deploy -- --skip-build     复用已有 dist
+ *   npm run cf:deploy -- --deploy-only    仅部署（build:cf 阶段已构建并导入过）
  */
 
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { importContent } from './lib/content-import.mjs'
 import {
   applyMigrations,
   ensureCloudflareBindings,
@@ -21,13 +23,16 @@ import {
   runWrangler,
   WranglerError,
 } from './lib/wrangler-cli.mjs'
-import { importContent } from './lib/content-import.mjs'
 
 const root = process.cwd()
 const argv = process.argv.slice(2)
 const dryRun = argv.includes('--dry-run')
 const skipImport = argv.includes('--skip-import')
 const skipBuild = argv.includes('--skip-build')
+const skipDeploy = argv.includes('--skip-deploy')
+
+/** Workers Builds 环境：CF_PAGES 不再适用，改用 CI + WORKERS_CI 判定 */
+const isBuildsCI = Boolean(process.env.WORKERS_CI || process.env.CI)
 
 function log(message) {
   console.log(message)
@@ -47,16 +52,14 @@ function runNpm(args) {
 
 function main() {
   const config = resolveProjectConfig(root)
-  const databaseName = config.d1.databaseName
-  const bucketName = config.r2.bucketName
-  const outputDir = join(root, config.pagesBuildOutputDir)
+  const { d1, r2 } = { d1: config.d1, r2: config.r2 }
 
   log('部署计划:')
-  log(`  Pages 项目   ${config.workerName}`)
-  log(`  D1 数据库    ${databaseName}`)
-  log(`  R2 存储桶    ${bucketName}`)
-  log(`  构建产物     ${config.pagesBuildOutputDir}`)
-  log(`  步骤         资源准备 → 建表 → 导入内容 → 构建 → 部署`)
+  log(`  Worker           ${config.workerName}`)
+  log(`  D1 数据库        ${d1.databaseName}`)
+  log(`  R2 存储桶        ${r2.bucketName}`)
+  log(`  静态资源目录     ${config.assetsDirectory}`)
+  log(`  运行环境         ${isBuildsCI ? 'Workers Builds (CI)' : '本地'}`)
 
   if (dryRun) {
     log('')
@@ -65,14 +68,13 @@ function main() {
   }
 
   log('')
-  log('[1/5] 准备 D1 与 R2 资源')
-  const { d1, r2 } = ensureCloudflareBindings(root, { log })
-  if (d1.created || r2.created)
-    log('已自动创建缺失的资源')
+  log('[1/5] 确认 D1 与 R2 绑定')
+  const binding = ensureCloudflareBindings(root, { log })
+  log(`  D1 ${binding.d1.created ? '已创建' : '已复用'}，R2 ${binding.r2.created ? '已创建' : '已复用'}`)
 
   log('')
   log('[2/5] 应用 D1 表结构')
-  applyMigrations(root, { databaseName, log })
+  applyMigrations(root, { databaseName: d1.databaseName, log })
 
   if (skipImport) {
     log('')
@@ -80,16 +82,21 @@ function main() {
   }
   else {
     log('')
-    log('[3/5] 导入 content/ 内容到 R2 + D1')
-    const summary = importContent(root, { databaseName, bucketName, local: false, log })
+    log('[3/5] 导入 content/ 到 R2 + D1')
+    const summary = importContent(root, {
+      databaseName: d1.databaseName,
+      bucketName: r2.bucketName,
+      local: false,
+      log,
+    })
     log(`  文章 ${summary.posts} 篇 / 相册 ${summary.albums} 个专辑`)
   }
 
   if (skipBuild) {
     log('')
     log('[4/5] 已跳过构建（--skip-build）')
-    if (!existsSync(join(outputDir, 'index.html')))
-      throw new WranglerError(`${config.pagesBuildOutputDir}/ 下没有构建产物，请先执行 npm run build`)
+    if (!existsSync(join(root, config.assetsDirectory, 'index.html')))
+      throw new WranglerError(`${config.assetsDirectory}/ 下没有构建产物，请先执行 npm run build`)
   }
   else {
     log('')
@@ -97,19 +104,18 @@ function main() {
     runNpm(['run', 'build'])
   }
 
-  log('')
-  log('[5/5] 部署到 Cloudflare Pages')
-  runWrangler([
-    'pages',
-    'deploy',
-    config.pagesBuildOutputDir,
-    '--project-name',
-    config.workerName,
-    '--commit-dirty=true',
-  ], { cwd: root })
+  if (skipDeploy) {
+    log('')
+    log('[5/5] 已跳过部署（--skip-deploy）')
+    return
+  }
 
   log('')
-  log(`部署完成: https://${config.workerName}.pages.dev`)
+  log('[5/5] 部署 Worker')
+  runWrangler(['deploy'], { cwd: root })
+
+  log('')
+  log('部署完成')
 }
 
 try {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 本地完整测试：构建 SPA + 本地 D1/R2 + Pages Functions
+ * 本地完整预览：构建前端 + 本地 D1/R2 导入 + wrangler dev
  *
  * 用法: npm run dev:cf
  * 访问: http://localhost:8788
@@ -35,7 +35,7 @@ function run(cmd, args, opts = {}) {
 if (lite) {
   console.log('1/2 构建 SPA...')
   run('npm', ['run', 'build'])
-  console.log('\n2/2 启动 wrangler pages dev（跳过内容导入）...\n')
+  console.log('\n2/2 启动 wrangler dev（跳过内容导入）...\n')
 }
 else {
   console.log('1/3 构建 SPA...')
@@ -44,7 +44,7 @@ else {
   console.log('\n2/3 建表并导入 content/ 到本地 R2 + D1...')
   run('node', ['scripts/import-content.mjs', '--local'])
 
-  console.log('\n3/3 启动 wrangler pages dev...\n')
+  console.log('\n3/3 启动 wrangler dev...\n')
 }
 
 console.log('  首页:     http://localhost:8788')
@@ -54,7 +54,7 @@ console.log('  关于 API: http://localhost:8788/api/about')
 console.log('  相册 API: http://localhost:8788/api/gallery')
 console.log('  后台:     http://localhost:8788/admin\n')
 
-const child = spawn('npx', ['wrangler', 'pages', 'dev', 'dist', '--port', '8788'], {
+const child = spawn('npx', ['wrangler', 'dev', '--port', '8788'], {
   cwd: root,
   stdio: 'inherit',
   shell: true,

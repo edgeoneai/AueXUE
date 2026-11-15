@@ -44,3 +44,6 @@ public/feed.json
 .tmp-*
 .cf-functions-build/
 dist/
+
+# 构建期生成的部署配置（含账号专属 ID）
+wrangler.build.toml

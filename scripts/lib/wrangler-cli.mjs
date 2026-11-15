@@ -87,7 +87,7 @@ export function parseWranglerConfig(text) {
 
   return {
     workerName: readKey(root, 'name'),
-    pagesBuildOutputDir: readKey(root, 'pages_build_output_dir'),
+
     compatibilityDate: readKey(root, 'compatibility_date'),
     d1: {
       binding: readKey(d1, 'binding') || DEFAULT_BINDING_DB,
@@ -98,6 +98,11 @@ export function parseWranglerConfig(text) {
       binding: readKey(r2, 'binding') || DEFAULT_BINDING_BUCKET,
       bucketName: readKey(r2, 'bucket_name') || DEFAULT_R2_NAME,
     },
+    assets: {
+      directory: readKey(sections.get('assets') || [], 'directory')?.replace(/^\.\//, '') || 'dist',
+      binding: readKey(sections.get('assets') || [], 'binding') || 'ASSETS',
+    },
+    main: readKey(root, 'main'),
   }
 }
 
@@ -109,14 +114,15 @@ export function resolveProjectConfig(root) {
   const text = readFileSync(configPath, 'utf8')
   const config = parseWranglerConfig(text)
 
-  const workerName = process.env.PAGES_PROJECT_NAME || config.workerName
+  const workerName = process.env.WORKER_NAME || process.env.PAGES_PROJECT_NAME || config.workerName
   if (!workerName)
-    throw new WranglerError('wrangler.toml 缺少 name 字段，无法确定 Pages 项目名')
+    throw new WranglerError('wrangler.toml 缺少 name 字段，无法确定 Worker 名')
 
   return {
     configPath,
     text,
-    pagesBuildOutputDir: process.env.PAGES_BUILD_OUTPUT_DIR || config.pagesBuildOutputDir || 'dist',
+    assetsDirectory: process.env.ASSETS_DIRECTORY || config.assets.directory,
+    mainEntry: config.main,
     workerName,
     d1: {
       binding: config.d1.binding,
@@ -259,16 +265,25 @@ function quoteArg(arg) {
   return /[\s"]/.test(arg) ? `"${String(arg).replace(/"/g, '\\"')}"` : String(arg)
 }
 
+/** 优先用项目内安装的 wrangler，避免 npx 临时下载导致版本漂移或 CI 无网络时失败 */
+function resolveWranglerCommand() {
+  const local = join(process.cwd(), 'node_modules', '.bin', process.platform === 'win32' ? 'wrangler.cmd' : 'wrangler')
+  if (existsSync(local))
+    return { command: local, args: [] }
+  return { command: 'npx', args: ['wrangler'] }
+}
+
 export function runWrangler(args, options = {}) {
   const { cwd = process.cwd(), capture = false, allowFailure = false } = options
+  const { command, args: prefix } = resolveWranglerCommand()
   const result = process.platform === 'win32'
-    ? spawnSync(`npx wrangler ${args.map(quoteArg).join(' ')}`, {
+    ? spawnSync(`${command} ${[...prefix, ...args].map(quoteArg).join(' ')}`, {
         cwd,
         shell: true,
         encoding: 'utf8',
         stdio: capture ? 'pipe' : 'inherit',
       })
-    : spawnSync('npx', ['wrangler', ...args], {
+    : spawnSync(command, [...prefix, ...args], {
         cwd,
         shell: false,
         encoding: 'utf8',

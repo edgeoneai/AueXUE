@@ -7,10 +7,12 @@
     "build": "node scripts/move-posts-to-content.mjs && node scripts/generate-icons-css.mjs && valaxy build",
     "build:ssg": "node scripts/build-ssg.mjs",
     "build:ssg:raw": "valaxy build --ssg",
+    "cf:build": "node scripts/build-cf.mjs",
+    "cf:deploy": "node scripts/deploy-cloudflare.mjs",
+    "cf:deploy:only": "node scripts/deploy-cf-only.mjs",
+    "cf:bootstrap": "node scripts/cloudflare-bootstrap.mjs",
     "content:import": "node scripts/import-content.mjs",
     "content:import:local": "node scripts/import-content.mjs --local",
-    "cf:bootstrap": "node scripts/cloudflare-bootstrap.mjs",
-    "cf:deploy": "node scripts/deploy-cloudflare.mjs",
     "migrate:posts": "node scripts/migrate-posts-to-r2.mjs",
     "migrate:posts:local": "node scripts/migrate-posts-to-r2.mjs --local",
     "migrate:links": "node scripts/migrate-links-to-r2.mjs",
@@ -63,7 +65,8 @@
     "@iconify/utils": "^3.1.3",
     "@unocss/preset-icons": "^66.5.10",
     "playwright": "^1.60.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.80.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

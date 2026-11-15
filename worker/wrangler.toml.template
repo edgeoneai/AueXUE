@@ -1,0 +1,25 @@
+# 仓库内配置：不含账号专属 ID，供 Workers Builds 在构建期生成 wrangler.build.toml。
+# 本地开发与手动部署用根目录 wrangler.toml（由 scripts/cloudflare-bootstrap.mjs 自动回填 database_id）。
+name = "__WORKER_NAME__"
+main = "worker/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+# valaxy 项目没有 404.html，未知路径统一回落到 index.html（与 Pages 版 _redirects 行为一致）
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "__D1_DATABASE_NAME__"
+database_id = "__D1_DATABASE_ID__"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "__R2_BUCKET_NAME__"
+
+[vars]
+SITE_URL = "__SITE_URL__"
