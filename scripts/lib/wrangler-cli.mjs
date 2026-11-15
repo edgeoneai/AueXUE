@@ -265,12 +265,17 @@ function quoteArg(arg) {
   return /[\s"]/.test(arg) ? `"${String(arg).replace(/"/g, '\\"')}"` : String(arg)
 }
 
+/** npx 兜底时使用的 wrangler 主版本，可用 WRANGLER_MAJOR 覆盖 */
+export const WRANGLER_VERSION = `wrangler@${process.env.WRANGLER_MAJOR || '4'}`
+
 /** 优先用项目内安装的 wrangler，避免 npx 临时下载导致版本漂移或 CI 无网络时失败 */
 function resolveWranglerCommand() {
+  // 项目内安装了就用本地的；否则退回 npx（Workers Builds 默认就是这么跑 wrangler 的）。
+  // 固定主版本，避免 npx 每次都解析到不同的大版本导致构建行为漂移。
   const local = join(process.cwd(), 'node_modules', '.bin', process.platform === 'win32' ? 'wrangler.cmd' : 'wrangler')
   if (existsSync(local))
     return { command: local, args: [] }
-  return { command: 'npx', args: ['wrangler'] }
+  return { command: 'npx', args: ['--yes', WRANGLER_VERSION] }
 }
 
 export function runWrangler(args, options = {}) {
