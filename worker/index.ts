@@ -71,6 +71,18 @@ async function route(request: Request, env: WorkerEnv, url: URL): Promise<Respon
     return route.handler({ request, env, params })
   }
 
+  // 未匹配的 /api/* 直接 404。不能让它落到静态资源回退，
+  // 否则 SPA 会把 index.html 当成 API 响应返回（原 Pages 版由 _routes.json 保证这一点）。
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) {
+    return new Response(JSON.stringify({ message: 'Not found' }), {
+      status: 404,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+      },
+    })
+  }
+
   return null
 }
 

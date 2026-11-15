@@ -13,6 +13,8 @@
  */
 
 import { spawnSync } from 'node:child_process'
+import { existsSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 import { importContent } from './lib/content-import.mjs'
 import {
   applyMigrations,
@@ -71,6 +73,14 @@ try {
   log('')
   log('[4/4] 构建前端')
   runNpm(['run', 'build'])
+
+  // Pages 专用的 _redirects 已不再使用（SPA 回退由 assets.not_found_handling 承担）。
+  // Workers 会严格校验该文件并拒绝 200!/无限循环写法，这里兜底清理，避免旧产物混入部署包。
+  const staleRedirects = join(root, config.assetsDirectory, '_redirects')
+  if (existsSync(staleRedirects)) {
+    rmSync(staleRedirects, { force: true })
+    log('已移除构建产物中的 _redirects（Pages 专用格式，Workers 不兼容）')
+  }
 
   log('')
   log('Build 阶段完成')
