@@ -3,28 +3,25 @@
  * 从 posts 表已有 categories/tags JSON 回填 post_categories / post_tags
  *
  * 用法:
- *   node scripts/backfill-taxonomy.mjs
- *   node scripts/backfill-taxonomy.mjs --local
+ *   npm run d1:backfill-taxonomy
+ *   npm run d1:backfill-taxonomy:local
+ *
+ * 内容导入本身已写好分类/标签，这个脚本只用于修复历史数据。
  */
 
-import { spawnSync } from 'node:child_process'
+import { executeSqlCommand, resolveProjectConfig, runWranglerJson } from './lib/wrangler-cli.mjs'
 
 const root = process.cwd()
-const useLocal = process.argv.includes('--local')
-const remoteFlag = useLocal ? '--local' : '--remote'
-
-function runWranglerSql(sql) {
-  const result = spawnSync('npx', ['wrangler', 'd1', 'execute', 'aiovtue-blog', remoteFlag, '--command', sql], {
-    cwd: root,
-    stdio: 'inherit',
-    shell: true,
-  })
-  if (result.status !== 0)
-    process.exit(result.status || 1)
-}
+const local = process.argv.includes('--local')
+const { d1 } = resolveProjectConfig(root)
+const databaseName = d1.databaseName
 
 function sqlEscape(value) {
-  return String(value).replace(/'/g, "''")
+  return String(value).replace(/'/g, '\'\'')
+}
+
+function runSql(sql) {
+  executeSqlCommand(root, { databaseName, sql, local })
 }
 
 function categoryPath(categoriesJson) {
@@ -57,35 +54,20 @@ function parseTags(tagsJson) {
   }
 }
 
-function runWranglerJson(sql) {
-  const result = spawnSync('npx', [
-    'wrangler', 'd1', 'execute', 'aiovtue-blog', remoteFlag, '--command', sql, '--json',
-  ], {
-    cwd: root,
-    encoding: 'utf8',
-    shell: true,
-  })
-  if (result.status !== 0) {
-    console.error(result.stderr || result.stdout)
-    process.exit(result.status || 1)
-  }
-  return JSON.parse(result.stdout || '[]')
-}
+console.log(`[backfill-taxonomy] 开始回填 (${local ? 'local' : 'remote'})`)
 
-console.log(`[backfill-taxonomy] 开始回填 (${useLocal ? 'local' : 'remote'})`)
+runSql('DELETE FROM post_categories; DELETE FROM post_tags;')
 
-runWranglerSql('DELETE FROM post_categories; DELETE FROM post_tags;')
-
-const rows = runWranglerJson('SELECT slug, categories, tags FROM posts;')
-const posts = rows?.[0]?.results || []
+const response = runWranglerJson(
+  ['d1', 'execute', databaseName, local ? '--local' : '--remote', '--command', 'SELECT slug, categories, tags FROM posts;'],
+  { cwd: root },
+)
+const posts = response?.[0]?.results || []
 
 for (const row of posts) {
-  const path = categoryPath(row.categories)
-  runWranglerSql(`INSERT INTO post_categories (post_slug, category_path) VALUES ('${sqlEscape(row.slug)}', '${sqlEscape(path)}');`)
-
-  for (const tag of parseTags(row.tags)) {
-    runWranglerSql(`INSERT INTO post_tags (post_slug, tag) VALUES ('${sqlEscape(row.slug)}', '${sqlEscape(tag)}');`)
-  }
+  runSql(`INSERT INTO post_categories (post_slug, category_path) VALUES ('${sqlEscape(row.slug)}', '${sqlEscape(categoryPath(row.categories))}');`)
+  for (const tag of parseTags(row.tags))
+    runSql(`INSERT INTO post_tags (post_slug, tag) VALUES ('${sqlEscape(row.slug)}', '${sqlEscape(tag)}');`)
 }
 
 console.log(`[backfill-taxonomy] 完成，处理 ${posts.length} 篇文章`)

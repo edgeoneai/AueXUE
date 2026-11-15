@@ -16,6 +16,7 @@ dist-ssr
 node_modules
 .idea/
 *.log
+.agents/
 
 components.d.ts
 

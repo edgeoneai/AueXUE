@@ -5,10 +5,10 @@
  * 用法: npm run dev:cf
  * 访问: http://localhost:8788
  *
- * 仅重建前端、不迁移数据: npm run dev:cf:lite
+ * 仅重建前端、不导入内容: npm run dev:cf:lite
  */
-import { existsSync, copyFileSync } from 'node:fs'
-import { spawnSync, spawn } from 'node:child_process'
+import { copyFileSync, existsSync } from 'node:fs'
+import { spawn, spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 
 const root = process.cwd()
@@ -32,32 +32,19 @@ function run(cmd, args, opts = {}) {
     process.exit(result.status || 1)
 }
 
-console.log('1/2 构建 SPA...')
-run('npm', ['run', 'build'])
-
 if (lite) {
-  console.log('\n2/2 启动 wrangler pages dev（跳过数据迁移）...\n')
+  console.log('1/2 构建 SPA...')
+  run('npm', ['run', 'build'])
+  console.log('\n2/2 启动 wrangler pages dev（跳过内容导入）...\n')
 }
 else {
-  console.log('\n2/8 应用本地 D1 迁移...')
-  run('npx', ['wrangler', 'd1', 'migrations', 'apply', 'aiovtue-blog', '--local'])
+  console.log('1/3 构建 SPA...')
+  run('npm', ['run', 'build'])
 
-  console.log('\n3/8 同步文章到本地 R2 + D1...')
-  run('node', ['scripts/migrate-posts-to-r2.mjs', '--local'])
+  console.log('\n2/3 建表并导入 content/ 到本地 R2 + D1...')
+  run('node', ['scripts/import-content.mjs', '--local'])
 
-  console.log('\n4/8 同步友链到本地 R2...')
-  run('node', ['scripts/migrate-links-to-r2.mjs', '--local'])
-
-  console.log('\n5/8 同步关于页到本地 R2...')
-  run('node', ['scripts/migrate-about-to-r2.mjs', '--local'])
-
-  console.log('\n6/8 同步相册到本地 R2...')
-  run('node', ['scripts/migrate-gallery-to-r2.mjs', '--local'])
-
-  console.log('\n7/8 同步公告栏到本地 D1...')
-  run('node', ['scripts/migrate-notice-to-d1.mjs', '--local'])
-
-  console.log('\n8/8 启动 wrangler pages dev...\n')
+  console.log('\n3/3 启动 wrangler pages dev...\n')
 }
 
 console.log('  首页:     http://localhost:8788')

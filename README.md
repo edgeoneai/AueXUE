@@ -1,5 +1,7 @@
 ### 简介
-*AueXUE* 是一个基于cloudflare进行托管，使用R2作为储存源，D1作为数据库的现代化动态博客项目，无需每次更改重新部署项目，实时预览你的更改，同时配套专属obsidian插件，方便在obsidian管理和发布文章，配有一键发布文章的功能，在obsidian打开对应文章点击发布即可直接将文档发布到云端并返回分享链接
+*AueXUE* 是一个基于cloudflare进行托管，使用R2作为储存源，D1作为数据库的现代化动态博客项目，无需每次更改重新部署项目，实时预览你的更改，同时配套专属obsidian插件，方便在obsidian管理和发布文章，配有一键发布文章的功能，在obsidian打开对应文章点击发布即可直接将文档发布到云端并返回分享链接。
+原作者：[AIOVTUE](https://github.com/AIOVTUE/AueXUE)
+
 #### 网站预览
 网站样式预览可以前往 **https://daily.yybb.us** 该站点是基于hugo重构，ui界面保持一致，如果对这个感兴趣的话，请看 [Hugo最美主题-aiovtue](posts/hugoTheme-aiovtue)
 这里也放几张站点的截图方便预览
@@ -92,59 +94,64 @@ npm install
 
 | 命令                    | 端口   | 说明                                                  |
 | --------------------- | ---- | --------------------------------------------------- |
-| `npm run dev`         | 4859 | Vite 热更新；API 走本地 `content/` 插件，**与云端行为不完全一致**       |
-| `npm run dev:cf`      | 8788 | **推荐**：构建 + 本地 D1/R2 迁移 + `wrangler pages dev`，等同云端 |
-| `npm run dev:cf:lite` | 8788 | 仅重建前端并启动 wrangler，**跳过数据迁移**（改样式/UI 时用）             |
-说一下区别，`npm run dev:cf`命令是本地全量预览，会进行数据转移，即将本地文章转移到本地预览R2和数据库中，`npm run dev:cf:lite`这个命令和上一个命令一样，但是会跳过数据迁移部分，大大加快预览速度，首次建议`npm run dev:cf`，后续使用`npm run dev:cf:lite`即可
+| `npm run dev`         | 4859 | Vite 热更新；API 走本地 `content/` 插件，**与云端行为不完全一致**       |
+| `npm run dev:cf`      | 8788 | **推荐**：构建 + 自动建表并导入 `content/` 到本地 D1/R2 + `wrangler pages dev`，等同云端 |
+| `npm run dev:cf:lite` | 8788 | 仅重建前端并启动 wrangler，**跳过内容导入**（改样式/UI 时用）             |
+说一下区别，`npm run dev:cf` 命令是本地全量预览，会自动把 `content/` 里的文章、友链、关于页、相册、公告栏导入到本地预览的 R2 和 D1 中，不需要逐条执行导入命令；`npm run dev:cf:lite` 和上一个命令一样，但会跳过导入部分，大大加快预览速度，首次建议 `npm run dev:cf`，后续使用 `npm run dev:cf:lite` 即可
 要是想删除本地数据库数据，可以使用后台手动删除，也可以直接删除`AueXUE\.wrangler\state`
 文件夹下所有文件，然后重新执行全量命令即可。
 
 #### 云端部署
 云端部署分为两种方式，终端部署和网页部署，终端部署比较简单，推荐终端
 ##### 终端部署
-###### 步骤 1：创建 Cloudflare 资源
-运行如下命令创建数据库和R2，当然也可以使用网页手动创建，需要先登陆wrangler，登陆命令为`wrangler login`，没安装的话使用命令安装`npm install -g wrangler`
-登录后运行下列命令创建数据库和R2
+###### 步骤 1：登录 wrangler
 ```shell
-# 创建 D1 数据库
-npx wrangler d1 create aiovtue-blog
-
-# 创建 R2 存储桶
-npx wrangler r2 bucket create aiovtue-blog
-
-# 创建 Pages 项目（若尚未创建）
-npx wrangler pages project create aiovtue-blog --production-branch main
+npx wrangler login
 ```
+没安装 wrangler 的话先装一下：`npm install -g wrangler`
 
-将 `d1 create` 输出的 `database_id` 填入 `wrangler.toml` 的 `database_id` 字段。
- `wrangler.toml` 文件位于根目录下，需要填入对应的数据库id，如果修改了数据库名称等东西也要一起修改
- 
-###### 步骤 2：应用 D1 表结构
-运行如下命令即可
-```
-npm run d1:migrate
-```
-等价于：
-```
-npx wrangler d1 migrations apply aiovtue-blog --remote
-```
-
-数据库迁移文件位于 `migrations/`，包含如下文件：
-1. `0001_posts.sql` — 文章表 + FTS
-2. `0002_taxonomy.sql` — 分类/标签表
-3. `0003_pin_order.sql` — 置顶字段
-4. `0004_notice.sql` — 公告栏
-5. `0005_admin_login_attempts.sql` — 登录限速
-
-###### 步骤 3：同步内容到 R2 + D1
-运行如下命令同步数据，一行一行运行
+###### 步骤 2：一条命令完成建库、建桶、建表、导入内容和部署
 ```shell
-npm run migrate:posts
-npm run migrate:links
-npm run migrate:about
-npm run migrate:gallery
-npm run migrate:notice
+npm run cf:deploy
 ```
+这条命令会按顺序自动完成下面 5 件事，中途不需要任何手工操作：
+
+1. 按 `wrangler.toml` 里的 `database_name` 查询 D1：**已有就复用，没有就自动创建**，并把对应的 `database_id` 和 `[[d1_databases]]` 绑定写回 `wrangler.toml`（删库重建后 id 变了也会自动纠正）
+2. 按 `bucket_name` 查询 R2：**已有就复用，没有就自动创建**，缺 `[[r2_buckets]]` 绑定段时也会自动补上
+3. 应用 `migrations/` 下的全部表结构（已有表会跳过）
+4. 把 `content/` 下的文章、友链、关于页、相册、公告栏导入到 R2 + D1
+5. 构建站点并部署到 Cloudflare Pages
+
+只想先看看会做什么、不实际动手：
+```shell
+npm run cf:deploy -- --dry-run
+```
+
+###### 步骤 3：常用可选命令
+如果不需要全流程，可以按需单独执行：
+
+| 命令 | 作用 |
+|---|---|
+| `npm run cf:bootstrap` | 只处理绑定：D1/R2 有就复用、没有就创建，并写回 `wrangler.toml` |
+| `npm run d1:migrate` | 只应用 `migrations/` 表结构 |
+| `npm run content:import` | 只导入 `content/` 内容（自动先建表） |
+| `npm run content:import -- --only posts,links` | 只导入指定类型，可选 `posts`/`links`/`about`/`gallery`/`notice` |
+| `npm run cf:deploy -- --skip-import` | 内容没变，只建表 + 构建 + 部署 |
+| `npm run cf:deploy -- --skip-build` | 复用已有 `dist/`，直接部署 |
+
+导入是全量覆盖式的 upsert（同一篇 slug 会更新而不是重复），所以内容改完随时可以重跑，不需要先清库。
+
+数据库名、桶名都取自 `wrangler.toml`，改名字后不用再改脚本；也可以用环境变量临时覆盖：`D1_DATABASE_NAME`、`R2_BUCKET_NAME`、`PAGES_PROJECT_NAME`。
+
+数据库迁移文件位于 `migrations/`，包含如下文件：
+1. `0001_posts.sql` — 文章表 + FTS
+2. `0002_taxonomy.sql` — 分类/标签表
+3. `0003_pin_order.sql` — 置顶字段
+4. `0004_notice.sql` — 公告栏
+5. `0005_admin_login_attempts.sql` — 登录限速
+6. `0006_html_files.sql` — 独立 HTML 文件
+
+旧的 `npm run migrate:posts` 等单条命令仍然可用，它们是 `content:import -- --only <类型>` 的等价封装。
 
 ###### 步骤 4：配置 Pages 环境变量
 在 Cloudflare Dashboard → **Workers & Pages** → **aiovtue-blog** → **Settings** → **Environment variables** 中添加如下环境变量，和`.dev.vars`文件中的变量一样：
@@ -159,22 +166,22 @@ npm run migrate:notice
 
 `wrangler.toml` 中 `[vars]` 的 `SITE_URL` 用于构建默认值；生产环境建议在 Dashboard 覆盖为你的自定义域名
 
-###### 步骤 5：构建并部署
-使用如下命令构建部署，一行一行运行
+###### 步骤 5：构建并部署（已包含在 `cf:deploy` 中）
+如果你已经执行过 `npm run cf:deploy`，这一步不需要再做，它会自动构建并部署。
+只想在改完前端后重新构建部署、不动数据时，单独运行：
 ```shell
-npm run build
-npx wrangler pages deploy dist --project-name aiovtue-blog --commit-dirty=true
+npm run cf:deploy -- --skip-import
 ```
-执行完之后就能在cloudflare的项目列表看到该项目了，此时就能进行访问了
+执行完之后就能在 cloudflare 的项目列表看到该项目了，此时就能进行访问了
+
 ###### 步骤 6：绑定自定义域名（可选）
 Cloudflare Dashboard → Pages 项目 → **Custom domains** → 添加 `daily.yybb.us` 等域名，按提示配置 DNS
 要和下列文件中的url保持一致哦，不一致的话请绑定配置好后重新运行部署命令部署一下：
 - `site.config.ts` 中的 `url`
 - `wrangler.toml` 中 `SITE_URL`（或 Dashboard 环境变量）
 
-
 ##### 网页部署
-部署前需要修改`wrangler.toml` 文件对应内容，确保cloudflare的D1和R2信息正确，也就是说要先创建数据库这些
+部署前只需要把 `wrangler.toml` 里的 `name`、`database_name`、`bucket_name` 改成自己的名字，`database_id` 留空即可，绑定段整个删掉也行——脚本会按名字查询，**D1 与 R2 已有就绑定已有的，没有才创建**，并把绑定和 `database_id` 自动写回 `wrangler.toml`。然后在本地跑一次 `npm run cf:deploy`，它会建表、导入 `content/` 内容并部署；之后日常改文章直接在后台管理即可。
 ###### 登录并进入 Pages
 1. 打开 [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. 左侧选择 **Workers 和 Pages**（Workers & Pages）
@@ -230,18 +237,17 @@ Cloudflare Dashboard → Pages 项目 → **Custom domains** → 添加 `dail
 
 - 修改环境变量后，点击 **重新部署** 使配置生效
 
-###### 在控制台执行 D1 数据库迁移
-关联 Git 不会自动执行 `migrations/` 里的 SQL，**首次部署**或**有新迁移文件**时需处理表结构。
-1. Dashboard → **Storage & databases** → **D1** → 选择 **aiovtue-blog**
-2. 打开 **控制台（Console）** 标签
-3. 将 `migrations/` 下各 `.sql` 文件内容**按编号顺序**粘贴执行：
-    - `0001_posts.sql`
-    - `0002_taxonomy.sql`
-    - `0003_pin_order.sql`
-    - `0004_notice.sql`
-    - `0005_admin_login_attempts.sql`
+###### 表结构、内容导入与首次初始化
+关联 Git 的自动部署只负责构建前端页面，不会创建表结构，也不会把 `content/` 导入云端。首次使用（以及以后 `content/`、`migrations/` 有改动时）在本地仓库根目录跑一次：
 
-即使用文档软件打开上面的文件，复制其中的内容，粘贴到cloudflare网页端数据库终端中运行即可，每个文件都要运行一遍，注意要按顺序运行，一次一个
+```shell
+npm run cf:deploy
+```
+
+它会按顺序完成：按 `wrangler.toml` 的 `database_name`/`bucket_name` 查询 D1 与 R2（已有就复用，没有才创建）→ 把绑定与 `database_id` 写回 `wrangler.toml` → 应用 `migrations/` 表结构 → 导入 `content/` 下的文章、友链、关于页、相册、公告栏 → 构建并部署。
+
+导入是 upsert，同一篇 slug 只会更新不会重复，所以随时可以重跑。
+
 
 ###### 步骤 6：绑定自定义域名（可选）
 Cloudflare Dashboard → Pages 项目 → **Custom domains** → 添加 `daily.yybb.us` 等域名，按提示配置 DNS
