@@ -3,6 +3,10 @@ main = "worker/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# 顶层键：部署时保留 Dashboard 上已配置的变量。
+# 否则 wrangler 会用本文件的 [vars] 覆盖云端变量，把管理员账号等冲掉。
+keep_vars = true
+
 [assets]
 directory = "./dist"
 binding = "ASSETS"

@@ -241,6 +241,12 @@ Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes*
 
 - 修改环境变量后，点击 **重新部署** 使配置生效
 
+> **重要：`wrangler.toml` 里已设置 `keep_vars = true`。**
+>
+> 默认情况下，`wrangler deploy` 会用配置文件里的 `[vars]` 覆盖 Dashboard 上的变量，把你在页面上配的 `ADMIN_USERNAME` 等冲掉——表现就是后台登录报「管理员登录未配置」。
+>
+> `keep_vars = true` 会让部署保留 Dashboard 上的变量。**不要删掉这一行**，除非你打算把所有变量都写进 `wrangler.toml`（不推荐，密码等敏感项不应入库）。
+
 ###### 绑定自定义域名（可选）
 Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes** → 添加 `daily.yybb.us` 等域名，按提示配置 DNS
 要和下列文件中的url保持一致哦，不一致的话请绑定配置好后重新运行部署命令部署一下：
