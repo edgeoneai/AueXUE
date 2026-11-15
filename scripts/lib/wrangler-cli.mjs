@@ -367,45 +367,50 @@ export function listD1Databases(root) {
 export function ensureD1Database(root, databaseName, options = {}) {
   const { create = true, configuredId = '', log = () => {} } = options
 
-  if (!isPlaceholderDatabaseId(configuredId)) {
-    log(`D1 数据库: ${databaseName} (${configuredId})，使用配置中的 database_id`)
-    return { databaseId: configuredId, created: false, source: 'config' }
+  const byName = listD1Databases(root).find(item => item?.name === databaseName)
+
+  // 1) 云端已有同名库 → 以云端 uuid 为准（配置里的 id 可能过期或填错）
+  if (byName?.uuid) {
+    if (!isPlaceholderDatabaseId(configuredId) && configuredId !== byName.uuid)
+      log(`database_id 与云端不一致（配置 ${configuredId} → 云端 ${byName.uuid}），以云端为准`)
+    else
+      log(`D1 数据库已存在: ${databaseName} (${byName.uuid})`)
+    return { databaseId: byName.uuid, created: false, source: 'list' }
   }
 
-  log(`wrangler.toml 未提供 database_id，按名称查询: ${databaseName}`)
-  const existing = listD1Databases(root).find(item => item?.name === databaseName)
-  if (existing?.uuid) {
-    log(`已在云端找到同名数据库: ${databaseName} (${existing.uuid})`)
-    return { databaseId: existing.uuid, created: false, source: 'list' }
-  }
-
+  // 2) 云端没有同名库 → 需要创建
   if (!create)
     throw new WranglerError(`D1 数据库不存在: ${databaseName}`)
 
-  if (isCI()) {
-    throw new WranglerError(
-      `在构建环境中未找到 D1 数据库 "${databaseName}"，且不会在 CI 中自动创建。`
-      + '\n请先在本地执行 npm run cf:bootstrap 创建，或把正确的 database_id 写入 wrangler.toml。',
-    )
-  }
-
-  log(`D1 数据库不存在，正在创建: ${databaseName}`)
+  log(`未在云端找到数据库 "${databaseName}"，正在创建`)
   const result = runWrangler(['d1', 'create', databaseName], { cwd: root, capture: true, allowFailure: true })
   const output = `${result.stdout}\n${result.stderr}`
-  const databaseId = extractCreatedDatabaseId(output)
 
-  if (databaseId) {
-    log(`已创建 ${databaseName} (${databaseId})`)
-    return { databaseId, created: true, source: 'created' }
+  const createdId = extractCreatedDatabaseId(output)
+  if (createdId) {
+    log(`已创建 D1 数据库 ${databaseName} (${createdId})`)
+    return { databaseId: createdId, created: true, source: 'created' }
   }
 
-  const created = listD1Databases(root).find(item => item?.name === databaseName)
-  if (created?.uuid) {
-    log(`已创建 ${databaseName}，database_id 从数据库列表读取`)
-    return { databaseId: created.uuid, created: true, source: 'created' }
+  // 创建失败但库其实存在：说明列表因权限/分页没返回它。
+  // 此时回退到配置里的 id，避免重复创建。
+  if (/already exists|already owns|already has|已存在/i.test(output)) {
+    if (!isPlaceholderDatabaseId(configuredId)) {
+      log(`数据库 "${databaseName}" 已存在（列表未返回），沿用配置中的 database_id`)
+      return { databaseId: configuredId, created: false, source: 'config' }
+    }
+    const retried = listD1Databases(root).find(item => item?.name === databaseName)
+    if (retried?.uuid) {
+      log(`D1 数据库已存在: ${databaseName} (${retried.uuid})`)
+      return { databaseId: retried.uuid, created: false, source: 'list' }
+    }
   }
 
-  throw new WranglerError(`创建 D1 数据库失败或无法获取 database_id: ${databaseName}`, output)
+  throw new WranglerError(
+    `无法创建或定位 D1 数据库 "${databaseName}"。`
+    + '\n请确认 CLOUDFLARE_API_TOKEN 具有 D1 Read/Write 权限，或在 wrangler.toml 中直接填写 database_id。',
+    output,
+  )
 }
 
 function extractCreatedDatabaseId(output) {
@@ -434,22 +439,28 @@ function extractCreatedDatabaseId(output) {
 export function ensureR2Bucket(root, bucketName, options = {}) {
   const { create = true, log = () => {} } = options
 
-  if (!create || isCI())
+  if (!create)
     return { created: false }
 
+  // R2 绑定只按名字引用、不需要 id；`r2 bucket list` 也不支持 --json，
+  // 所以这里不做列表查询，直接用「创建 + 容忍已存在」的方式确保桶可用。
   log(`检查/创建 R2 存储桶: ${bucketName}`)
   const result = runWrangler(['r2', 'bucket', 'create', bucketName], { cwd: root, capture: true, allowFailure: true })
-  if (result.ok)
+  if (result.ok) {
+    log(`已创建 R2 存储桶 ${bucketName}`)
     return { created: true }
+  }
 
   const detail = `${result.stdout}\n${result.stderr}`
-  if (/already (exists|owned)|already has|已存在/i.test(detail)) {
+  // 已存在是最常见的结果，属正常情况
+  if (/already (exists|owned|has)|bucket.*exists|已存在/i.test(detail)) {
     log(`R2 存储桶已存在: ${bucketName}`)
     return { created: false }
   }
 
-  // 权限不足等情况不阻塞：桶可能已存在且只是没有创建/列举权限
-  log(`未能确认 R2 存储桶状态（${bucketName}），继续执行；若写入失败请检查桶名与权限`)
+  // 创建权限不足等情况不阻塞流程：桶可能已存在，只是当前凭据没有创建权限。
+  // 真正的可用性由后续写入验证，失败时会给出更具体的错误。
+  log(`未能确认 R2 存储桶状态（${bucketName}），继续执行；若写入失败请检查桶名与 API Token 的 R2 权限`)
   return { created: false }
 }
 
@@ -472,9 +483,13 @@ export function ensureD1Binding(root, options = {}) {
     log,
   })
 
-  // CI 里配置文件是一次性的，写它没有意义，反而会掩盖问题
-  if (isCI())
+  // CI 里的 wrangler.toml 是一次性检出，改写不会回流到仓库，
+  // 因此只提示建议值，不写盘（真正生效的是下面渲染出的 wrangler.build.toml）。
+  if (isCI()) {
+    if (created)
+      log(`建议把 database_id = "${databaseId}" 提交到 wrangler.toml，避免每次构建重新创建`)
     return { databaseId, created, changed: false }
+  }
 
   let nextText = config.text
 

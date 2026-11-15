@@ -206,9 +206,11 @@ Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes*
 
 所以每次 push 都会自动建表、自动导入内容、自动部署，不需要在本地跑任何命令。
 
-> **首次使用前，请先在本地执行一次 `npm run cf:bootstrap`**，它会按 `database_name` 查找（没有则创建）D1 与 R2，并把 `database_id` 写回 `wrangler.toml`，提交这个改动即可。
->
-> 之后构建阶段会**直接使用 `wrangler.toml` 里已有的 `database_id`**，不再查询列表、也不会创建任何资源。这是有意设计：CI 里 `d1 list` 可能因 Token 权限或分页返回不全，若据此"纠正" id 会误建空库并把站点指向错误的数据库。
+构建阶段会按 `database_name` 查找 D1：**已有就复用，没有就自动创建**；R2 同样自动创建。因此首次 push 就能一键跑通，不需要预先手工建资源。
+
+创建得到 `database_id` 后，构建日志会提示把它写进 `wrangler.toml`。建议照做并提交——虽然不写也能工作（每次构建会重新按名字查到同一个库），但显式写死可以避免依赖列表接口的返回结果。
+
+> 规则细节：`wrangler.toml` 里填了 `database_id` 时，会以云端同名库的 id 为准自动纠正过期或填错的值；若列表接口因权限原因没返回该库，会回退使用配置里的 id，不会重复创建。
 >
 > `worker/wrangler.toml.template` 不含账号 ID，`database_id` 只在构建期渲染进 `wrangler.build.toml`（已 gitignore）。
 
@@ -224,7 +226,7 @@ Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes*
 
 > Workers Builds 会自动注入 API Token，构建阶段因此可以操作 D1/R2。**不要**把 Token 写进仓库。
 >
-> 构建阶段只读写已有资源，不会创建 D1/R2；资源需事先用 `npm run cf:bootstrap` 准备好。
+> 构建阶段的 Token 需要 D1 与 R2 的读写权限，否则无法自动创建资源。
 
 ###### 配置环境变量
 路径：**设置** → **变量和密钥（Variables and Secrets）** → **添加**如下变量，和 `.dev.vars` 文件内变量一致
