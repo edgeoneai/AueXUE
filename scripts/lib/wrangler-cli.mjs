@@ -339,53 +339,70 @@ export function runWranglerJson(args, options = {}) {
  * 「数据库不存在」，接着去创建同名库并覆盖 wrangler.toml 里的 database_id，
  * 把一个鉴权问题变成一条错误数据。
  */
+/** 是否运行在 CI / Workers Builds 环境 */
+export function isCI() {
+  return Boolean(process.env.WORKERS_CI || process.env.CI || process.env.CF_PAGES)
+}
+
 export function listD1Databases(root) {
   const result = runWranglerJson(['d1', 'list'], { cwd: root })
   const list = Array.isArray(result) ? result : result?.result
   if (!Array.isArray(list))
-    throw new WranglerError('无法解析 D1 数据库列表，请确认已执行 npx wrangler login')
-  return list
-}
-
-export function listR2Buckets(root) {
-  const result = runWranglerJson(['r2', 'bucket', 'list'], { cwd: root })
-  const list = Array.isArray(result) ? result : result?.buckets || result?.result
-  if (!Array.isArray(list))
-    throw new WranglerError('无法解析 R2 存储桶列表，请确认已执行 npx wrangler login')
+    throw new WranglerError('无法解析 D1 数据库列表，请确认已执行 wrangler login 或配置了 CLOUDFLARE_API_TOKEN')
   return list
 }
 
 /**
- * 确保 D1 数据库存在；不存在时自动创建
- * @returns {{ databaseId: string, created: boolean }}
+ * 解析 D1 database_id，安全优先。
+ *
+ * 1. wrangler.toml 里已有合法 database_id → **直接采用**，不查询、不创建。
+ *    配置是唯一权威：CI 里 `d1 list` 可能因 token 权限不足或分页返回不全，
+ *    据此「纠正」id 会建出重复空库并把线上数据指向错误的库。
+ * 2. id 为空/占位 → 按 database_name 查询：
+ *    - 命中 → 采用其 uuid
+ *    - 未命中 → 仅在允许创建时创建；CI 中直接报错，提示手动填写
+ *
+ * @returns {{ databaseId: string, created: boolean, source: 'config'|'list'|'created' }}
  */
 export function ensureD1Database(root, databaseName, options = {}) {
-  const { create = true, log = () => {} } = options
-  const databases = listD1Databases(root)
-  const existing = databases.find(item => item?.name === databaseName)
+  const { create = true, configuredId = '', log = () => {} } = options
+
+  if (!isPlaceholderDatabaseId(configuredId)) {
+    log(`D1 数据库: ${databaseName} (${configuredId})，使用配置中的 database_id`)
+    return { databaseId: configuredId, created: false, source: 'config' }
+  }
+
+  log(`wrangler.toml 未提供 database_id，按名称查询: ${databaseName}`)
+  const existing = listD1Databases(root).find(item => item?.name === databaseName)
   if (existing?.uuid) {
-    log(`D1 数据库已存在: ${databaseName} (${existing.uuid})`)
-    return { databaseId: existing.uuid, created: false }
+    log(`已在云端找到同名数据库: ${databaseName} (${existing.uuid})`)
+    return { databaseId: existing.uuid, created: false, source: 'list' }
   }
 
   if (!create)
     throw new WranglerError(`D1 数据库不存在: ${databaseName}`)
 
-  log(`D1 数据库不存在，正在创建: ${databaseName}`)
+  if (isCI()) {
+    throw new WranglerError(
+      `在构建环境中未找到 D1 数据库 "${databaseName}"，且不会在 CI 中自动创建。`
+      + '\n请先在本地执行 npm run cf:bootstrap 创建，或把正确的 database_id 写入 wrangler.toml。',
+    )
+  }
 
-  // 不同 wrangler 版本输出格式不同（TOML 片段 / JSON），逐个尝试后仍解析不出
-  // 就回查一次列表，避免把「创建成功但没读懂输出」当成失败。
+  log(`D1 数据库不存在，正在创建: ${databaseName}`)
   const result = runWrangler(['d1', 'create', databaseName], { cwd: root, capture: true, allowFailure: true })
   const output = `${result.stdout}\n${result.stderr}`
   const databaseId = extractCreatedDatabaseId(output)
 
-  if (databaseId)
-    return { databaseId, created: true }
+  if (databaseId) {
+    log(`已创建 ${databaseName} (${databaseId})`)
+    return { databaseId, created: true, source: 'created' }
+  }
 
   const created = listD1Databases(root).find(item => item?.name === databaseName)
   if (created?.uuid) {
     log(`已创建 ${databaseName}，database_id 从数据库列表读取`)
-    return { databaseId: created.uuid, created: true }
+    return { databaseId: created.uuid, created: true, source: 'created' }
   }
 
   throw new WranglerError(`创建 D1 数据库失败或无法获取 database_id: ${databaseName}`, output)
@@ -404,50 +421,63 @@ function extractCreatedDatabaseId(output) {
   return uuid ? uuid[1] : null
 }
 
+/**
+ * 确保 R2 存储桶可用。
+ *
+ * R2 绑定只按名字引用，不需要 id；且 `wrangler r2 bucket list` 不支持 --json，
+ * 因此这里不查列表：
+ * - 需要时可以尝试创建，已存在(Bucket already exists)视为成功；
+ * - CI 中不创建，桶不存在时交由首次写入给出明确错误。
+ *
+ * @returns {{ created: boolean }}
+ */
 export function ensureR2Bucket(root, bucketName, options = {}) {
   const { create = true, log = () => {} } = options
-  const buckets = listR2Buckets(root)
-  const existing = buckets.find(item => item?.name === bucketName)
-  if (existing) {
+
+  if (!create || isCI())
+    return { created: false }
+
+  log(`检查/创建 R2 存储桶: ${bucketName}`)
+  const result = runWrangler(['r2', 'bucket', 'create', bucketName], { cwd: root, capture: true, allowFailure: true })
+  if (result.ok)
+    return { created: true }
+
+  const detail = `${result.stdout}\n${result.stderr}`
+  if (/already (exists|owned)|already has|已存在/i.test(detail)) {
     log(`R2 存储桶已存在: ${bucketName}`)
     return { created: false }
   }
 
-  if (!create)
-    throw new WranglerError(`R2 存储桶不存在: ${bucketName}`)
-
-  log(`R2 存储桶不存在，正在创建: ${bucketName}`)
-  const result = runWrangler(['r2', 'bucket', 'create', bucketName], { cwd: root, capture: true, allowFailure: true })
-  if (!result.ok) {
-    const detail = `${result.stdout}\n${result.stderr}`
-    if (/already (exists|owned)|已存在/i.test(detail)) {
-      log(`R2 存储桶已存在: ${bucketName}`)
-      return { created: false }
-    }
-    throw new WranglerError(`创建 R2 存储桶失败: ${bucketName}`, detail)
-  }
-
-  return { created: true }
+  // 权限不足等情况不阻塞：桶可能已存在且只是没有创建/列举权限
+  log(`未能确认 R2 存储桶状态（${bucketName}），继续执行；若写入失败请检查桶名与权限`)
+  return { created: false }
 }
 
 /**
- * 确保 wrangler.toml 里的 D1 绑定与云端一致：段缺失就补段，id 缺失/过期就回填。
+ * 确保 wrangler.toml 里有可用的 D1 绑定。
  *
- * 「有就绑定，没有就创建」——按 database_name 查云端：
- * - 云端已有同名库 → 直接复用它的 uuid，不重复创建；
- * - 云端没有 → 自动创建；
- * - 本地 database_id 为空或已过期（库被删掉重建）→ 以云端 uuid 为准改写。
+ * - 已有合法 database_id → 原样使用（不做任何网络查询与写入）
+ * - id 缺失 → 按 database_name 查/建，并回填配置（CI 中只读不写）
+ * - 绑定段缺失 → 补段
  *
  * @returns {{ databaseId: string, created: boolean, changed: boolean }}
  */
 export function ensureD1Binding(root, options = {}) {
   const { log = () => {} } = options
   const config = resolveProjectConfig(root)
-  const { databaseId, created } = ensureD1Database(root, config.d1.databaseName, { log })
+
+  const { databaseId, created } = ensureD1Database(root, config.d1.databaseName, {
+    configuredId: config.d1.databaseId,
+    create: true,
+    log,
+  })
+
+  // CI 里配置文件是一次性的，写它没有意义，反而会掩盖问题
+  if (isCI())
+    return { databaseId, created, changed: false }
 
   let nextText = config.text
 
-  // 1) 绑定段不存在 → 补上整段
   if (!hasSection(config.text, 'd1_databases')) {
     nextText = ensureSection(nextText, 'd1_databases', {
       binding: config.d1.binding,
@@ -457,13 +487,10 @@ export function ensureD1Binding(root, options = {}) {
     log('wrangler.toml 缺少 [[d1_databases]] 绑定，已自动补上')
   }
   else if (config.d1.databaseId !== databaseId) {
-    // 2) 段存在但 id 不对 → 回填
-    if (!isPlaceholderDatabaseId(config.d1.databaseId))
-      log(`wrangler.toml 中的 database_id 已过期（${config.d1.databaseId} → ${databaseId}），正在更新`)
     nextText = patchDatabaseId(nextText, databaseId)
   }
 
-  const changed = writeFileIfChanged(config.configPath, nextText)
+  const changed = nextText === config.text ? false : writeFileIfChanged(config.configPath, nextText)
   if (changed)
     log('已写入 database_id 到 wrangler.toml')
 
@@ -471,8 +498,7 @@ export function ensureD1Binding(root, options = {}) {
 }
 
 /**
- * 确保 wrangler.toml 里的 R2 绑定与云端一致：段缺失就补段。
- * 桶已存在则复用，不存在则创建。
+ * 确保 wrangler.toml 里有 R2 绑定段；桶本身按名字引用，不强制查询。
  *
  * @returns {{ created: boolean, changed: boolean }}
  */
@@ -481,20 +507,21 @@ export function ensureR2Binding(root, options = {}) {
   const config = resolveProjectConfig(root)
   const { created } = ensureR2Bucket(root, config.r2.bucketName, { log })
 
-  let changed = false
-  if (!hasSection(config.text, 'r2_buckets')) {
-    const nextText = ensureSection(config.text, 'r2_buckets', {
-      binding: config.r2.binding,
-      bucket_name: config.r2.bucketName,
-    })
-    changed = writeFileIfChanged(config.configPath, nextText)
+  if (isCI() || hasSection(config.text, 'r2_buckets'))
+    return { created, changed: false }
+
+  const nextText = ensureSection(config.text, 'r2_buckets', {
+    binding: config.r2.binding,
+    bucket_name: config.r2.bucketName,
+  })
+  const changed = writeFileIfChanged(config.configPath, nextText)
+  if (changed)
     log('wrangler.toml 缺少 [[r2_buckets]] 绑定，已自动补上')
-  }
 
   return { created, changed }
 }
 
-/** 一次性确保 D1 与 R2 绑定都已就绪（创建 + 回填） */
+/** 一次性确保 D1 与 R2 绑定都已就绪 */
 export function ensureCloudflareBindings(root, options = {}) {
   const { log = () => {} } = options
   const d1 = ensureD1Binding(root, { log })

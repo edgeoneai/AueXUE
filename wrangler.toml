@@ -12,7 +12,7 @@ not_found_handling = "single-page-application"
 [[d1_databases]]
 binding = "DB"   # 这个不能动
 database_name = "aiovtue-blog"   # 名字不一样也要改，最好一样
-database_id = "221c5bca-6857-4435-ae6e-e7c613adab23"
+database_id = ""   # 留空即可：脚本会按 database_name 查回真实 id 并写回本文件
 migrations_dir = "migrations"
 
 [[r2_buckets]]

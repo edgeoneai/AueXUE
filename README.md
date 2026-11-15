@@ -201,12 +201,16 @@ Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes*
 
 | 命令 | 做什么 |
 |---|---|
-| `npm run cf:build`（Build） | 查询/创建 D1 与 R2 → 生成 `wrangler.build.toml` → 应用 `migrations/` 建表 → 导入 `content/` → 构建前端 |
+| `npm run cf:build`（Build） | 读取 D1 绑定 → 生成 `wrangler.build.toml` → 应用 `migrations/` 建表 → 导入 `content/` → 构建前端 |
 | `npm run cf:deploy:only`（Deploy） | 用上一步生成的配置部署 Worker，不重复建表和导入 |
 
 所以每次 push 都会自动建表、自动导入内容、自动部署，不需要在本地跑任何命令。
 
-> 仓库里的 `worker/wrangler.toml.template` 不含账号专属 ID；`database_id` 由构建阶段按名字查询后写进 `wrangler.build.toml`（已 gitignore）。这样换账号或重建库都不用改仓库文件。
+> **首次使用前，请先在本地执行一次 `npm run cf:bootstrap`**，它会按 `database_name` 查找（没有则创建）D1 与 R2，并把 `database_id` 写回 `wrangler.toml`，提交这个改动即可。
+>
+> 之后构建阶段会**直接使用 `wrangler.toml` 里已有的 `database_id`**，不再查询列表、也不会创建任何资源。这是有意设计：CI 里 `d1 list` 可能因 Token 权限或分页返回不全，若据此"纠正" id 会误建空库并把站点指向错误的数据库。
+>
+> `worker/wrangler.toml.template` 不含账号 ID，`database_id` 只在构建期渲染进 `wrangler.build.toml`（已 gitignore）。
 
 ###### 配置构建变量（可选）
 如果 D1/R2/Worker 名字和 `wrangler.toml` 里的默认值不同，在 **设置 → 构建 → 构建变量** 里添加：
@@ -219,6 +223,8 @@ Cloudflare Dashboard → Workers 项目 → **Settings** → **Domains & Routes*
 |`SITE_URL`|站点主 URL|
 
 > Workers Builds 会自动注入 API Token，构建阶段因此可以操作 D1/R2。**不要**把 Token 写进仓库。
+>
+> 构建阶段只读写已有资源，不会创建 D1/R2；资源需事先用 `npm run cf:bootstrap` 准备好。
 
 ###### 配置环境变量
 路径：**设置** → **变量和密钥（Variables and Secrets）** → **添加**如下变量，和 `.dev.vars` 文件内变量一致
