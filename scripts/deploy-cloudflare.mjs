@@ -18,7 +18,9 @@ import { join } from 'node:path'
 import { importContent } from './lib/content-import.mjs'
 import {
   applyMigrations,
+  d1RowExists,
   ensureCloudflareBindings,
+  r2ObjectExists,
   resolveProjectConfig,
   runWrangler,
   WranglerError,
@@ -91,11 +93,24 @@ function main() {
   else {
     log('')
     log('[3/5] 导入 content/ 到 R2 + D1')
+    // 默认只补缺失，不覆盖云端已有内容（云端可能已在后台改过）。
+    // 需要强制覆盖仓库内容时：--force 或 CONTENT_FORCE_IMPORT=1
+    const force = argv.includes('--force') || process.env.CONTENT_FORCE_IMPORT === '1'
+    if (force)
+      log('  将以仓库内容覆盖云端已有数据')
     const summary = importContent(root, {
       databaseName: d1.databaseName,
       bucketName: r2.bucketName,
       local: false,
       log,
+      force,
+      exists(target) {
+        if (target === 'notice')
+          return d1RowExists(root, { databaseName: d1.databaseName, sql: 'SELECT id FROM notice_board WHERE id = 1;' })
+        if (target.startsWith('post:'))
+          return d1RowExists(root, { databaseName: d1.databaseName, sql: `SELECT slug FROM posts WHERE slug = '${target.slice(5).replace(/'/g, "''")}';` })
+        return r2ObjectExists(root, { bucketName: r2.bucketName, r2Key: target })
+      },
     })
     log(`  文章 ${summary.posts} 篇 / 相册 ${summary.albums} 个专辑`)
   }

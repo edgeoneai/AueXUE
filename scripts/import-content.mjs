@@ -23,6 +23,7 @@ const root = process.cwd()
 const argv = process.argv.slice(2)
 const local = argv.includes('--local')
 const skipMigrations = argv.includes('--skip-migrations')
+const force = argv.includes('--force')
 
 function readOption(name) {
   const index = argv.indexOf(name)

@@ -568,6 +568,37 @@ export function putR2Object(root, options = {}) {
   runWrangler(args, { cwd: root })
 }
 
+/**
+ * 判断 R2 对象是否已存在。
+ *
+ * 用 `r2 object get` 探测（存在则成功，不存在返回非零），
+ * 不依赖 `r2 object list`——后者输出格式随版本变化，且分页行为不确定。
+ */
+export function r2ObjectExists(root, options = {}) {
+  const { bucketName, r2Key, local = false } = options
+  const result = runWrangler(
+    ['r2', 'object', 'get', `${bucketName}/${r2Key}`, local ? '--local' : '--remote', '--pipe'],
+    { cwd: root, capture: true, allowFailure: true },
+  )
+  return result.ok
+}
+
+/** 查询 D1 单行是否存在 */
+export function d1RowExists(root, options = {}) {
+  const { databaseName, sql, local = false } = options
+  try {
+    const response = runWranglerJson(
+      ['d1', 'execute', databaseName, local ? '--local' : '--remote', '--command', sql],
+      { cwd: root },
+    )
+    const rows = response?.[0]?.results || []
+    return rows.length > 0
+  }
+  catch {
+    return false
+  }
+}
+
 export function writeFileIfChanged(path, content) {
   const previous = existsSync(path) ? readFileSync(path, 'utf8') : null
   if (previous === content)

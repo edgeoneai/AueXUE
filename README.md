@@ -152,7 +152,13 @@ npm run cf:deploy -- --dry-run
 | `npm run cf:deploy -- --skip-import` | 内容没变，只建表 + 构建 + 部署 |
 | `npm run cf:deploy -- --skip-build` | 复用已有 `dist/`，直接部署 |
 
-导入是全量覆盖式的 upsert（同一篇 slug 会更新而不是重复），所以内容改完随时可以重跑，不需要先清库。
+**导入默认只补缺失，不覆盖云端已有内容。** 云端数据可能已经在后台改过，用仓库里的种子内容覆盖会把修改冲掉。需要强制覆盖（例如重置为仓库版本）时：
+
+```shell
+npm run cf:deploy -- --force
+# 或
+CONTENT_FORCE_IMPORT=1 npm run cf:build
+```
 
 数据库名、桶名都取自 `wrangler.toml`，改名字后不用再改脚本；也可以用环境变量临时覆盖：`D1_DATABASE_NAME`、`R2_BUCKET_NAME`、PAGES 项目名用 `WORKER_NAME`。
 

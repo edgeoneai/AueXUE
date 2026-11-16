@@ -203,12 +203,21 @@ function importPosts(root, options) {
     return { posts: 0 }
   }
 
+  let imported = 0
+
   for (const file of files) {
     const slug = basename(file, '.md')
     const sourcePath = join(postsDir, file)
     const source = readFileSync(sourcePath, 'utf8')
     const { frontmatter: fm, content } = splitMarkdown(source)
     const r2Key = `posts/${slug}.md`
+
+    // 云端已有同 slug 的文章时默认跳过：仓库里的是种子文章，
+    // 覆盖会冲掉后台编辑过的正文与元信息。
+    if (!options.force && options.exists && options.exists(`post:${slug}`)) {
+      log(`已存在，跳过文章 ${slug}（需要覆盖请加 --force）`)
+      continue
+    }
 
     // 先校验再写盘：与 server/posts/service.ts 的 upsertPost 同一口径。
     // 若缺 title/date 用默认值兜底，导入结果会随执行日期漂移，破坏幂等。
@@ -280,16 +289,28 @@ function importPosts(root, options) {
 
     runSql(root, options, sql)
     log(`已导入文章: ${slug}`)
+    imported += 1
   }
 
-  return { posts: files.length }
+  return { posts: imported }
 }
 
+/**
+ * 上传单个 Markdown 到 R2。
+ *
+ * 默认不覆盖云端已有对象——云端版本可能已在后台改过，
+ * 用仓库里的模板覆盖会把这些修改冲掉。只有 force 时才覆盖。
+ */
 function importSingleMarkdown(root, options, localPath, r2Key) {
   const { log } = options
   if (!localPath) {
     log(`未找到 ${r2Key} 的源文件，跳过`)
     return false
+  }
+
+  if (!options.force && options.exists && options.exists(r2Key)) {
+    log(`已存在，跳过 ${r2Key}（需要覆盖请加 --force）`)
+    return true
   }
 
   putR2Object(root, {
@@ -345,6 +366,11 @@ function importNotice(root, options) {
     throw new Error('content/notice.json 不是合法 JSON')
   }
 
+  if (!options.force && options.exists && options.exists('notice')) {
+    log('公告栏已存在，跳过（需要覆盖请加 --force）')
+    return { notice: true }
+  }
+
   const title = String(parsed?.title || '公告栏').trim() || '公告栏'
   const sections = Array.isArray(parsed?.sections) ? parsed.sections : []
   const sectionsJson = JSON.stringify(sections)
@@ -367,14 +393,22 @@ ON CONFLICT(id) DO UPDATE SET
  * @param {object} options { databaseName, bucketName, local, categories, log }
  */
 export function importContent(root, options) {
-  const { databaseName, bucketName, local = false, categories = CATEGORIES, log = () => {} } = options
+  const {
+    databaseName,
+    bucketName,
+    local = false,
+    categories = CATEGORIES,
+    log = () => {},
+    force = false,
+    exists,
+  } = options
   if (!databaseName)
     throw new Error('importContent 需要 databaseName')
   if (!bucketName)
     throw new Error('importContent 需要 bucketName')
 
   const sources = resolveContentSources(root)
-  const ctx = { databaseName, bucketName, local, log, sources }
+  const ctx = { databaseName, bucketName, local, log, sources, force, exists }
   const summary = { posts: 0, links: false, about: false, albums: 0, notice: false }
 
   if (categories.includes('posts'))

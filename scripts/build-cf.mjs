@@ -18,7 +18,9 @@ import { join } from 'node:path'
 import { importContent } from './lib/content-import.mjs'
 import {
   applyMigrations,
+  d1RowExists,
   ensureCloudflareBindings,
+  r2ObjectExists,
   resolveProjectConfig,
   WranglerError,
 } from './lib/wrangler-cli.mjs'
@@ -62,11 +64,26 @@ try {
   log('')
   log('[3/4] 建表并导入 content/')
   applyMigrations(root, { databaseName: config.d1.databaseName, log })
+
+  // 默认只补缺失，不覆盖云端已有内容。
+  // 云端数据可能在后台改过，用仓库里的种子内容覆盖会造成「设置被重置」。
+  const force = process.env.CONTENT_FORCE_IMPORT === '1'
+  if (force)
+    log('  CONTENT_FORCE_IMPORT=1，将覆盖云端已有内容')
+
   const summary = importContent(root, {
     databaseName: config.d1.databaseName,
     bucketName: config.r2.bucketName,
     local: false,
     log,
+    force,
+    exists(target) {
+      if (target === 'notice')
+        return d1RowExists(root, { databaseName: config.d1.databaseName, sql: 'SELECT id FROM notice_board WHERE id = 1;' })
+      if (target.startsWith('post:'))
+        return d1RowExists(root, { databaseName: config.d1.databaseName, sql: `SELECT slug FROM posts WHERE slug = '${target.slice(5).replace(/'/g, "''")}';` })
+      return r2ObjectExists(root, { bucketName: config.r2.bucketName, r2Key: target })
+    },
   })
   log(`  文章 ${summary.posts} 篇 / 相册 ${summary.albums} 个专辑`)
 
