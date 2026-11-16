@@ -1,0 +1,10 @@
+{
+  "id": "aiovtue-valaxy-sync",
+  "name": "AueXUE",
+  "version": "1.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "AueXUE 管理，文章发布插件（同步网站后台的 HTML 文件与站点设置模块）",
+  "author": "AIOVTUE-雪",
+  "authorUrl": "https://daily.yybb.us",
+  "isDesktopOnly": false
+}
