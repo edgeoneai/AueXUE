@@ -12,6 +12,7 @@ import { dynamicPostsDevApi } from './plugins/dynamic-posts-dev-api'
 import { excludePagesPostsMd } from './plugins/exclude-pages-posts-md'
 import { excludeThemePaginationPage } from './plugins/exclude-theme-pagination-page'
 import { patchVercountNoPeer } from './plugins/patch-vercount-no-peer'
+import { exposeValaxyConfig } from './plugins/expose-valaxy-config'
 import siteConfig from './site.config'
 import { mainNavItems, iconSafelist } from './shared/nav-icons'
 
@@ -58,7 +59,7 @@ export default defineValaxyConfig({
   },
 
   vite: {
-    plugins: [patchVercountNoPeer(), twikooLocalPlugin(), excludePagesPostsMd(), excludeThemePaginationPage(), albumWebdavConfigPlugin(), albumWebdavProxy(), dynamicPostsDevApi(), disableSsgHydration(), vaFoucLoader({
+    plugins: [patchVercountNoPeer(), twikooLocalPlugin(), excludePagesPostsMd(), excludeThemePaginationPage(), albumWebdavConfigPlugin(), albumWebdavProxy(), dynamicPostsDevApi(), disableSsgHydration(), exposeValaxyConfig(), vaFoucLoader({
       avatar: '/favicon.png',
       title: siteConfig.title,
       subtitle: siteConfig.subtitle,

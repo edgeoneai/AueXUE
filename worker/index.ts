@@ -14,6 +14,7 @@ import { onRequest as handleAdmin } from '../functions/api/admin/[[path]]'
 import { onRequest as handleAbout } from '../functions/api/about/[[path]]'
 import { onRequest as handleLinks } from '../functions/api/links/[[path]]'
 import { onRequest as handleNotice } from '../functions/api/notice/[[path]]'
+import { onRequest as handleSiteSettings } from '../functions/api/site-settings/[[path]]'
 import { onRequest as handleAlbumWebdav } from '../functions/api/album-webdav/[[path]]'
 import { onRequest as handleAtomXml } from '../functions/atom.xml'
 import { onRequest as handleHtmlFile } from '../functions/[[path]]'
@@ -39,6 +40,7 @@ const PREFIX_ROUTES: PrefixRoute[] = [
   { prefix: '/api/about', handler: handleAbout, withParams: false },
   { prefix: '/api/links', handler: handleLinks, withParams: false },
   { prefix: '/api/notice', handler: handleNotice, withParams: false },
+  { prefix: '/api/site-settings', handler: handleSiteSettings, withParams: true },
   { prefix: '/api/album-webdav', handler: handleAlbumWebdav, withParams: false },
 ]
 

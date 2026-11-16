@@ -26,6 +26,7 @@ const navItems = [
   { key: 'gallery', label: '相册管理', icon: 'i-mdi-image-multiple-outline', to: '/admin/gallery' },
   { key: 'notice', label: '公告栏管理', icon: 'i-mdi-bullhorn-outline', to: '/admin/notice' },
   { key: 'about', label: '关于页', icon: 'i-mdi-information-outline', to: '/admin/about' },
+  { key: 'settings', label: '站点设置', icon: 'i-mdi-cog-outline', to: '/admin/settings' },
 ]
 
 const isPostsActive = computed(() => {
@@ -58,6 +59,11 @@ const isNoticeActive = computed(() => {
   return path === '/admin/notice'
 })
 
+const isSettingsActive = computed(() => {
+  const path = router.currentRoute.value.path.replace(/\/$/, '') || '/'
+  return path === '/admin/settings'
+})
+
 function isNavActive(key: string) {
   if (key === 'posts')
     return isPostsActive.value
@@ -71,6 +77,8 @@ function isNavActive(key: string) {
     return isGalleryActive.value
   if (key === 'notice')
     return isNoticeActive.value
+  if (key === 'settings')
+    return isSettingsActive.value
   return false
 }
 

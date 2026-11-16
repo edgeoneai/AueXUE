@@ -25,6 +25,11 @@ watch(() => route.path, (path) => {
 
 void loadDynamicTaxonomy()
 
+// 站点信息（标题、头像、主题色、首页 hero、页脚等）改为后台可配，
+// 加载后用接口数据覆盖 valaxy 的构建期默认值。
+const { loadSettings } = useSiteSettings()
+void loadSettings().then(settings => applySiteSettings(settings))
+
 function isAdminPath(path: string) {
   return isAdminRoutePath(path)
 }
