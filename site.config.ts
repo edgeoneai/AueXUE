@@ -14,7 +14,7 @@ export default defineSiteConfig({
   subtitle: pick(gen.subtitle, '雪'),
   author: {
     name: pick(gen.authorName, 'AIOVTUE'),
-    avatar: pick(gen.avatar, 'https://r2tc.20030327.xyz/file/博客/主题/1780655293662_avatar_me.jpg.PNG'),   //站点头像
+    avatar: pick(gen.avatar, '/head-portrait.png'),   //站点头像
     status: {
       emoji: pick(gen.authorStatus?.emoji, '🌸'),
       message: pick(gen.authorStatus?.message, '发呆ing...'),
