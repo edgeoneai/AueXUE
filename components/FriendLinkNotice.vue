@@ -44,12 +44,24 @@ const siteInfoTitle = computed(() => notice.value?.siteInfoTitle || '本站友�
 const siteInfoItems = computed(() => {
   const url = siteConfig.value.url || ''
   const normalizedUrl = url.endsWith('/') ? url : `${url}/`
+  // 相对地址（如 /head-portrait.png）补成绝对地址，方便别人直接复制
+  const toAbsolute = (value: string) => {
+    const raw = String(value || '').trim()
+    if (!raw)
+      return ''
+    if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(raw) || raw.startsWith('data:'))
+      return raw
+    if (!normalizedUrl)
+      return raw
+    return `${normalizedUrl.replace(/\/$/, '')}${raw.startsWith('/') ? '' : '/'}${raw}`
+  }
+
   const autoValues: Record<string, string> = {
-    站点名称: `${siteConfig.value.title || 'AIOVTUE'}'s blog`,
+    站点名称: siteConfig.value.title || 'AIOVTUE',
     站点链接: normalizedUrl,
-    站长头像: siteConfig.value.author?.avatar || '',
+    站长头像: toAbsolute(siteConfig.value.author?.avatar || ''),
     站点描述: siteConfig.value.description || '',
-    站点截图: props.siteshot,
+    站点截图: toAbsolute(props.siteshot),
   }
 
   const items = notice.value?.siteInfo || []
