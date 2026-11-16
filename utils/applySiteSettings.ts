@@ -1,4 +1,5 @@
 import type { SiteSettingsDetail } from '../types/siteSettings'
+import { valaxyConfigRef } from 'valaxy/client/config.ts'
 import { buildThemeShades } from './colorShades'
 
 /**
@@ -10,27 +11,17 @@ import { buildThemeShades } from './colorShades'
  * 不必逐个组件改造。
  */
 
-interface MutableConfigRef {
-  value: Record<string, any> | undefined
-}
-
-function getConfigRef(): MutableConfigRef | null {
-  const globalRef = (globalThis as any).__VALAXY_CONFIG_REF__
-  return globalRef || null
-}
-
 /**
  * 合并站点设置到运行时配置。
  * @returns 是否成功应用
  */
-export function applySiteSettings(settings: SiteSettingsDetail | null, configRef?: MutableConfigRef) {
-  const ref = configRef || getConfigRef()
-  if (!settings || !ref?.value)
+export function applySiteSettings(settings: SiteSettingsDetail | null) {
+  if (!settings || !valaxyConfigRef.value)
     return false
 
-  const config = ref.value
-  const siteConfig = { ...(config.siteConfig || {}) }
-  const themeConfig = { ...(config.themeConfig || {}) }
+  const config = valaxyConfigRef.value as Record<string, any>
+  const siteConfig: Record<string, any> = { ...(config.siteConfig || {}) }
+  const themeConfig: Record<string, any> = { ...(config.themeConfig || {}) }
 
   // --- site.config.ts 对应部分 ---
   siteConfig.url = settings.url
@@ -122,7 +113,7 @@ export function applySiteSettings(settings: SiteSettingsDetail | null, configRef
     chartLength: settings.pageStyles.tagsChartLength,
   }
 
-  ref.value = { ...config, siteConfig, themeConfig }
+  valaxyConfigRef.value = { ...config, siteConfig, themeConfig } as typeof valaxyConfigRef.value
 
   applyPrimaryColor(settings.themePrimary)
   return true
