@@ -225,6 +225,9 @@ function importPosts(root, options) {
 
     const title = fm.title
     const date = fm.date
+    // `lastmod` 是 Valaxy / Hexo 约定俗成的最后修改字段，与 `updated` 等价。
+    // 只认 updated 会让这类文章的数据库 updated 落成 NULL，列表卡片就显示 Invalid Date。
+    const updated = fm.updated ?? fm.lastmod
     const tags = normalizeTags(fm.tags)
     const categoryPath = categoryPathFrom(fm.categories)
     const tagList = tags || []
@@ -238,7 +241,7 @@ function importPosts(root, options) {
         ${sqlValue(fm.excerpt !== undefined ? String(fm.excerpt) : null)},
         ${sqlValue(fm.description !== undefined ? String(fm.description) : null)},
         ${sqlValue(String(date))},
-        ${sqlValue(fm.updated !== undefined ? String(fm.updated) : null)},
+        ${sqlValue(updated !== undefined && updated !== null && String(updated).trim() !== '' ? String(updated) : null)},
         ${sqlValue(fm.categories ? JSON.stringify(fm.categories) : null)},
         ${sqlValue(tags ? JSON.stringify(tags) : null)},
         ${sqlValue(fm.cover !== undefined ? String(fm.cover) : null)},
