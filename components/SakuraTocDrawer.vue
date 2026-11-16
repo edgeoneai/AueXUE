@@ -49,44 +49,56 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="hasHeaders" class="toc-drawer">
-    <button
-      type="button"
-      class="toc-drawer__btn"
-      :aria-expanded="open"
-      aria-controls="toc-drawer-panel"
-      :aria-label="open ? '关闭目录' : '打开目录'"
-      @click="toggle"
-    >
-      <span class="i-mdi-format-list-bulleted toc-drawer__icon" aria-hidden="true" />
-    </button>
-
-    <Transition name="toc-drawer">
-      <div v-if="open" class="toc-drawer__mask" @click="close" />
-    </Transition>
-
-    <Transition name="toc-drawer-panel">
-      <aside
-        v-if="open"
-        id="toc-drawer-panel"
-        class="toc-drawer__panel"
-        aria-label="文章目录"
+  <!--
+    必须 Teleport 到 body。
+    主题的 SakuraPage 带 transform-style: preserve-3d、.sakura-sidebar-offset 带
+    transform: translateX()，两者都会成为 fixed 定位的包含块，导致按钮跟着页面滚动、
+    抽屉错位。挂到 body 下可彻底避开这些祖先。
+  -->
+  <Teleport to="body">
+    <div v-if="hasHeaders" class="toc-drawer">
+      <button
+        type="button"
+        class="toc-drawer__btn"
+        :aria-expanded="open"
+        aria-controls="toc-drawer-panel"
+        :aria-label="open ? '关闭目录' : '打开目录'"
+        @click="toggle"
       >
-        <div class="toc-drawer__head">
-          <span class="toc-drawer__title">目录</span>
-          <button type="button" class="toc-drawer__close" aria-label="关闭目录" @click="close">
-            <span class="i-mdi-close" aria-hidden="true" />
-          </button>
-        </div>
-        <div class="toc-drawer__body">
-          <SakuraOutlineItem class="va-toc css-i18n-toc" :headers="headers" root />
-        </div>
-      </aside>
-    </Transition>
-  </div>
+        <span class="i-mdi-format-list-bulleted toc-drawer__icon" aria-hidden="true" />
+      </button>
+
+      <Transition name="toc-drawer">
+        <div v-if="open" class="toc-drawer__mask" @click="close" />
+      </Transition>
+
+      <Transition name="toc-drawer-panel">
+        <aside
+          v-if="open"
+          id="toc-drawer-panel"
+          class="toc-drawer__panel"
+          aria-label="文章目录"
+        >
+          <div class="toc-drawer__head">
+            <span class="toc-drawer__title">目录</span>
+            <button type="button" class="toc-drawer__close" aria-label="关闭目录" @click="close">
+              <span class="i-mdi-close" aria-hidden="true" />
+            </button>
+          </div>
+          <div class="toc-drawer__body">
+            <SakuraOutlineItem class="va-toc css-i18n-toc" :headers="headers" root />
+          </div>
+        </aside>
+      </Transition>
+    </div>
+  </Teleport>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+/*
+  不做 scoped：内容被 Teleport 到 body，虽然 Vue 仍会给元素加 scope 属性，
+  但样式挂在 body 下更直观、也不会受父级选择器影响。类名统一 toc-drawer 前缀避免冲突。
+*/
 /* 只在窄屏出现：主题在 < 768px 时隐藏右侧栏目录 */
 .toc-drawer {
   @media (min-width: 768px) {
