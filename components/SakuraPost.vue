@@ -100,6 +100,9 @@ useSchemaOrg(
         </SakuraAside>
       </slot>
     </template>
+
+    <!-- 窄屏目录抽屉：主题在窄屏隐藏右侧栏，这里补齐目录入口 -->
+    <SakuraTocDrawer />
   </SakuraPage>
 </template>
 

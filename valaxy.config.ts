@@ -57,6 +57,7 @@ export default defineValaxyConfig({
       'i-mdi-delete-outline',
       'i-mdi-pencil-outline',
       'i-mdi-close',
+      'i-mdi-format-list-bulleted',
       'i-mdi-check-circle-outline',
       'i-ri-arrow-left-s-line',
       'i-ri-arrow-right-s-line',
