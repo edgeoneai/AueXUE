@@ -24,9 +24,20 @@ const hoverNavbar = ref(false)
 const navbar = computed(() => props.navbar || themeConfig.value.navbar)
 const navbarOptions = computed(() => props.options || themeConfig.value.navbarOptions)
 
-const { autoHide, favicon, animIn, animOut, showMarker, title, subTitle, enableHover, offset } = navbarOptions.value
+// 改为派生 computed：后台「站点设置」在运行时覆盖 themeConfig 后，
+// 顶栏文字需要跟着更新。原先在 setup 顶层解构 navbarOptions.value，
+// 等于把 title/subTitle 取成一次性快照，ref 变化后不再更新。
+const autoHide = computed(() => navbarOptions.value.autoHide)
+const favicon = computed(() => navbarOptions.value.favicon)
+const animIn = computed(() => navbarOptions.value.animIn)
+const animOut = computed(() => navbarOptions.value.animOut)
+const showMarker = computed(() => navbarOptions.value.showMarker)
+const title = computed(() => navbarOptions.value.title)
+const subTitle = computed(() => navbarOptions.value.subTitle)
+const enableHover = computed(() => navbarOptions.value.enableHover)
+const offset = computed(() => navbarOptions.value.offset ?? 0)
 
-const isScrolled = computed(() => y.value > offset)
+const isScrolled = computed(() => y.value > offset.value)
 
 const isHeaderHighlighted = computed(() => {
   const autoHide = isIncludes(navbarOptions.value.autoHide)
@@ -35,7 +46,7 @@ const isHeaderHighlighted = computed(() => {
 
   const invert = isIncludes(navbarOptions.value.invert)
 
-  if (enableHover)
+  if (enableHover.value)
     return hoverNavbar.value || (invert ? isScrolled.value : !isScrolled.value)
   return invert ? isScrolled.value : !isScrolled.value
 })
@@ -47,7 +58,7 @@ const isSearchOpen = computed(() => sakuraAppStore.search.isOpen)
 const toolsAnimClass = computed(() => {
   if (!shouldAutoHideTools.value)
     return null
-  return isHeaderHighlighted.value ? animIn : animOut
+  return isHeaderHighlighted.value ? animIn.value : animOut.value
 })
 
 const headerClass = computed(() => [
