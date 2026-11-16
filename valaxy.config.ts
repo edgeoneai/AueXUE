@@ -14,8 +14,14 @@ import { excludeThemePaginationPage } from './plugins/exclude-theme-pagination-p
 import { patchVercountNoPeer } from './plugins/patch-vercount-no-peer'
 import siteConfig from './site.config'
 import { mainNavItems, iconSafelist } from './shared/nav-icons'
+import { loadGeneratedSiteSettings } from './shared/generated-site-settings'
 
-const themePrimary = '#DF9193'   //主题色
+// 后台「站点设置」在构建期注入的值（cf:build 从 D1 读取），没有时用下面的默认值
+const gen = loadGeneratedSiteSettings()
+const pick = <T>(value: T | undefined, fallback: T): T =>
+  value === undefined || value === null || (typeof value === 'string' && value.trim() === '') ? fallback : value
+
+const themePrimary = pick(gen.themePrimary, '#DF9193')   //主题色
 
 /**
  * User Config
@@ -59,7 +65,7 @@ export default defineValaxyConfig({
 
   vite: {
     plugins: [patchVercountNoPeer(), twikooLocalPlugin(), excludePagesPostsMd(), excludeThemePaginationPage(), albumWebdavConfigPlugin(), albumWebdavProxy(), dynamicPostsDevApi(), disableSsgHydration(), vaFoucLoader({
-      avatar: '/favicon.png',
+      avatar: pick(gen.avatar, '/favicon.png'),
       title: siteConfig.title,
       subtitle: siteConfig.subtitle,
       primary: themePrimary,
@@ -145,7 +151,7 @@ export default defineValaxyConfig({
     },
 
     postList: {
-      defaultImage: '/default-cover.png', //文章默认封面
+      defaultImage: pick(gen.defaultCover, '/default-cover.png'), //文章默认封面
     },
 
     
@@ -161,9 +167,9 @@ export default defineValaxyConfig({
     
     
     hero: {
-      title: 'AIOVTUE',   //首页中间的文字
-      motto: '雨是神的烟花',
-      urls: [
+      title: pick(gen.hero?.title, 'AIOVTUE'),   //首页中间的文字
+      motto: pick(gen.hero?.motto, '雨是神的烟花'),
+      urls: Array.isArray(gen.hero?.urls) && gen.hero.urls.length ? gen.hero.urls : [
       '/hero/tt3.png', 
       '/hero/hero-1.jpg',
       '/hero/hero-2.png',
@@ -173,15 +179,15 @@ export default defineValaxyConfig({
       '/hero/tt1.png', 
       '/hero/tt2.png', 
       ],
-      randomUrls: true,
+      randomUrls: gen.hero?.randomUrls ?? true,
       // 自定义视频播放器
-      playerUrl: '/hero/player.mp4',
-      style: 'dot', // 使用扫描线效果
-      fixedImg: true, // 固定背景图片
-      typewriter: true, // 启用打字机效果
-      enableHitokoto: true, // 启用一言
-      socialStyle: 'merge', // 一言下方显示社交图标
-      waveTheme: 'horizontal', // 设置水平波纹主题
+      playerUrl: pick(gen.hero?.playerUrl, '/hero/player.mp4'),
+      style: pick(gen.hero?.style, 'dot'), // 使用扫描线效果
+      fixedImg: gen.hero?.fixedImg ?? true, // 固定背景图片
+      typewriter: gen.hero?.typewriter ?? true, // 启用打字机效果
+      enableHitokoto: gen.hero?.enableHitokoto ?? true, // 启用一言
+      socialStyle: pick(gen.hero?.socialStyle, 'merge'), // 一言下方显示社交图标
+      waveTheme: pick(gen.hero?.waveTheme, 'horizontal'), // 设置水平波纹主题
     },
     
   postFooter: {
@@ -190,20 +196,20 @@ export default defineValaxyConfig({
     
    footer: {
       powered: false,
-      since: 2024,
-      runtimeSince: '2024-01-01',   //页脚计时时间
+      since: gen.footer?.since ?? 2024,
+      runtimeSince: pick(gen.footer?.runtimeSince, '2024-01-01'),   //页脚计时时间
       icon: {
         animated: true,
         url: 'https://your-website.com',
         title: 'Your Name',
       },
-      icp: '<a href="https://icp.gov.moe/?keyword=20260258" target="_blank" rel="noopener">萌ICP备20260258号</a>',    //页脚网站备案
+      icp: pick(gen.footer?.icp, '<a href="https://icp.gov.moe/?keyword=20260258" target="_blank" rel="noopener">萌ICP备20260258号</a>'),    //页脚网站备案
     }, 
   
     navbar: [...mainNavItems],
     navbarOptions: {
-      title: ['AIOVTUE-', '雪'],   //顶栏和侧边栏文字
-      subTitle: '雨是神的烟花',
+      title: Array.isArray(gen.navbar?.title) && gen.navbar.title.length ? gen.navbar.title : ['AIOVTUE-', '雪'],   //顶栏和侧边栏文字
+      subTitle: pick(gen.navbar?.subTitle, '雨是神的烟花'),
       offset: 0,
       invert: ['home'],
       showMarker: false,
@@ -214,7 +220,7 @@ export default defineValaxyConfig({
  
     pagination: {
       type: 'standard',
-      itemsPerPage: 10,   //分页设置
+      itemsPerPage: gen.itemsPerPage ?? 10,   //分页设置
     },
  
     
@@ -229,19 +235,19 @@ export default defineValaxyConfig({
 
     // 分类页样式：list 列表 / chart 环状图（玫瑰图或旭日图）
     categories: {
-      style: 'chart',
+      style: pick(gen.pageStyles?.categories, 'chart'),
     },
 
     // 归档页样式：list 时间线 / chart 发布统计折线面积图
     archives: {
-      style: 'chart',
-      startMonth: '2024-01',
+      style: pick(gen.pageStyles?.archives, 'chart'),
+      startMonth: pick(gen.pageStyles?.archivesStartMonth, '2024-01'),
     },
 
     // 标签页样式：list 按钮列表 / chart 柱状统计图
     tagsPage: {
-      style: 'chart',
-      chartLength: 10,
+      style: pick(gen.pageStyles?.tags, 'chart'),
+      chartLength: gen.pageStyles?.tagsChartLength ?? 10,
     },
 
     tags: {

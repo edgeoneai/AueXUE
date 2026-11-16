@@ -47,3 +47,6 @@ dist/
 
 # 构建期生成的部署配置（含账号专属 ID）
 wrangler.build.toml
+
+# 构建期从 D1 取出的站点设置（含账号内容，勿提交）
+.site-settings.local.json

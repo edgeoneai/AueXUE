@@ -34,11 +34,13 @@ function run(cmd, args, opts = {}) {
 
 if (lite) {
   console.log('1/2 构建 SPA...')
+  run('node', ['scripts/fetch-site-settings.mjs', '--local'])
   run('npm', ['run', 'build'])
   console.log('\n2/2 启动 wrangler dev（跳过内容导入）...\n')
 }
 else {
-  console.log('1/3 构建 SPA...')
+  console.log('1/3 读取站点设置并构建 SPA...')
+  run('node', ['scripts/fetch-site-settings.mjs', '--local'])
   run('npm', ['run', 'build'])
 
   console.log('\n2/3 建表并导入 content/ 到本地 R2 + D1...')

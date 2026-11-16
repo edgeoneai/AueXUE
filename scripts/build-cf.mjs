@@ -71,7 +71,10 @@ try {
   log(`  文章 ${summary.posts} 篇 / 相册 ${summary.albums} 个专辑`)
 
   log('')
-  log('[4/4] 构建前端')
+  log('[4/4] 读取站点设置并构建前端')
+  // 先取出后台「站点设置」，让预渲染 HTML、<title> 与 FOUC 加载屏
+  // 都用当前值渲染，而不是仓库配置文件里的默认值
+  runNode(['scripts/fetch-site-settings.mjs'])
   runNpm(['run', 'build'])
 
   // Pages 专用的 _redirects 已不再使用（SPA 回退由 assets.not_found_handling 承担）。

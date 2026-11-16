@@ -1,23 +1,32 @@
 import { defineSiteConfig } from 'valaxy'
+import { loadGeneratedSiteSettings } from './shared/generated-site-settings'
+
+// 后台「站点设置」在构建期注入的值（由 cf:build 从 D1 读取）；
+// 没有时全部回落到下面的默认值。
+const gen = loadGeneratedSiteSettings()
+const pick = <T>(value: T | undefined, fallback: T): T =>
+  value === undefined || value === null || (typeof value === 'string' && value.trim() === '') ? fallback : value
 
 export default defineSiteConfig({
-  url: 'https://your.site',
-  lang: 'zh-CN',
-  title: 'AIOVTUE',
-  subtitle: '雪',
+  url: pick(gen.url, 'https://your.site'),
+  lang: pick(gen.lang, 'zh-CN'),
+  title: pick(gen.title, 'AIOVTUE'),
+  subtitle: pick(gen.subtitle, '雪'),
   author: {
-    name: 'AIOVTUE',
-    avatar: 'https://r2tc.20030327.xyz/file/博客/主题/1780655293662_avatar_me.jpg.PNG',   //站点头像
+    name: pick(gen.authorName, 'AIOVTUE'),
+    avatar: pick(gen.avatar, 'https://r2tc.20030327.xyz/file/博客/主题/1780655293662_avatar_me.jpg.PNG'),   //站点头像
     status: {
-      emoji: '🌸',
-      message: '发呆ing...',
+      emoji: pick(gen.authorStatus?.emoji, '🌸'),
+      message: pick(gen.authorStatus?.message, '发呆ing...'),
       },
   },
-  description: '雨是神的烟花',
+  description: pick(gen.description, '雨是神的烟花'),
 
-  favicon: '/favicon.png',
+  favicon: pick(gen.favicon, '/favicon.png'),
 
-  social: [
+  social: Array.isArray(gen.social) && gen.social.length
+    ? gen.social
+    : [
     {
       name: 'RSS',
       link: '/atom.xml',
@@ -80,9 +89,11 @@ export default defineSiteConfig({
   },
 
   sponsor: {
-    enable: true,
-    title: '我很可爱，请给我钱！',
-    methods: [
+    enable: gen.sponsor?.enable ?? true,
+    title: pick(gen.sponsor?.title, '我很可爱，请给我钱！'),
+    methods: Array.isArray(gen.sponsor?.methods) && gen.sponsor.methods.length
+      ? gen.sponsor.methods
+      : [
       {
         name: '支付宝',
         url: 'https://i.postimg.cc/fyYTncnJ/IMG-20240915-155521.jpg',

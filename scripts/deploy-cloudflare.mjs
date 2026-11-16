@@ -38,6 +38,14 @@ function log(message) {
   console.log(message)
 }
 
+function runNode(args) {
+  const result = spawnSync(process.execPath, args, { cwd: root, stdio: 'inherit' })
+  if (result.error)
+    throw new WranglerError(`执行 node ${args.join(' ')} 失败: ${result.error.message}`)
+  if (result.status !== 0)
+    throw new WranglerError(`node ${args.join(' ')} 退出码 ${result.status}`)
+}
+
 function runNpm(args) {
   const result = spawnSync('npm', args, {
     cwd: root,
@@ -100,7 +108,8 @@ function main() {
   }
   else {
     log('')
-    log('[4/5] 构建站点')
+    log('[4/5] 读取站点设置并构建站点')
+    runNode(['scripts/fetch-site-settings.mjs'])
     runNpm(['run', 'build'])
   }
 
