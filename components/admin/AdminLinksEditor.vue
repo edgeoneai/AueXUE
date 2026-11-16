@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { FriendLinkGroup, FriendLinkItem, LinksFrontmatter } from '../../types/links'
+import type { FriendLinkGroup, FriendLinkItem, FriendLinkNoticeConfig, LinksFrontmatter } from '../../types/links'
+import { DEFAULT_FRIEND_LINK_NOTICE } from '../../server/links/notice'
 import { computed, inject, onBeforeUnmount, reactive, ref, type Ref } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import SakuraLinks from '../SakuraLinks.vue'
@@ -16,6 +17,17 @@ const emit = defineEmits<{
   save: [payload: { source: string }]
 }>()
 
+/**
+ * 「加入本站友链方式」提示：原先硬编码在 FriendLinkNotice.vue，
+ * 现在随友链 frontmatter 一起保存，可在后台编辑。
+ */
+const notice = ref<FriendLinkNoticeConfig>(
+  JSON.parse(JSON.stringify(
+    props.initialFrontmatter?.friendLinkNotice
+    || DEFAULT_FRIEND_LINK_NOTICE,
+  )),
+)
+
 const title = ref(String(props.initialFrontmatter?.title || '来加入我们叭'))
 const cover = ref(String(props.initialFrontmatter?.cover || ''))
 const icon = ref(String(props.initialFrontmatter?.icon || 'i-ri-links-line'))
@@ -31,6 +43,7 @@ const topbarTarget = inject<Ref<HTMLElement | null>>(adminTopbarTargetKey, ref(n
 const linkDialogOpen = ref(false)
 const groupDialogOpen = ref(false)
 const pageDialogOpen = ref(false)
+const noticeDialogOpen = ref(false)
 const editingGroupIndex = ref(-1)
 const editingLinkIndex = ref(-1)
 const linkDraft = reactive(createEmptyLink())
@@ -207,6 +220,7 @@ function buildSource() {
     comment: comment.value,
     random: random.value || undefined,
     errorImg: errorImg.value.trim() || undefined,
+    friendLinkNotice: notice.value,
     linkGroups: groups.value.map(group => ({
       name: group.name?.trim() || '',
       desc: group.desc?.trim() || '',
@@ -225,6 +239,11 @@ function buildSource() {
   }
 
   return serializeLinksFrontmatter(frontmatter)
+}
+
+function closeNoticeDialog() {
+  noticeDialogOpen.value = false
+  persistChanges()
 }
 
 function closePageDialog() {
@@ -290,6 +309,9 @@ defineExpose({
           <p>{{ groups.length }} 个分组 · {{ linkCount }} 条友链</p>
         </div>
         <div class="admin-links__actions">
+          <button type="button" class="admin-links__btn admin-links__btn--ghost" @click="noticeDialogOpen = true">
+            申请提示
+          </button>
           <button type="button" class="admin-links__btn admin-links__btn--ghost" @click="pageDialogOpen = true">
             页面设置
           </button>
@@ -460,6 +482,110 @@ defineExpose({
             <div class="admin-links-dialog__foot-spacer" />
             <button type="button" class="admin-links-dialog__btn admin-links-dialog__btn--ghost" :disabled="saving" @click="closePageDialog">
               {{ saving ? '保存中…' : '保存并关闭' }}
+            </button>
+          </footer>
+        </div>
+      </div>
+
+      <div v-if="noticeDialogOpen" class="admin-links-dialog" @click.self="noticeDialogOpen = false">
+        <div class="admin-links-dialog__panel" role="dialog" aria-modal="true" aria-label="申请提示">
+          <header class="admin-links-dialog__head">
+            <h2>加入本站友链方式</h2>
+            <button type="button" class="admin-links-dialog__close" aria-label="关闭" @click="noticeDialogOpen = false">
+              <span class="i-mdi-close" aria-hidden="true" />
+            </button>
+          </header>
+
+          <div class="admin-links-dialog__body admin-links-notice-dialog">
+            <label class="admin-links-dialog__check">
+              <input v-model="notice.enable" type="checkbox">
+              <span>显示这块提示</span>
+            </label>
+
+            <label class="admin-links-dialog__field admin-links-dialog__field--wide">
+              <span>标题</span>
+              <input v-model="notice.title" type="text" placeholder="加入本站友链方式">
+            </label>
+            <label class="admin-links-dialog__field admin-links-dialog__field--wide">
+              <span>副标题</span>
+              <input v-model="notice.subtitle" type="text" placeholder="参照以下格式留言即可">
+            </label>
+            <label class="admin-links-dialog__field admin-links-dialog__field--wide">
+              <span>YAML 模板（每行一条）</span>
+              <textarea v-model="notice.template" rows="5" spellcheck="false" />
+            </label>
+
+            <fieldset class="admin-links-notice-dialog__group">
+              <legend>申请规则</legend>
+              <div v-for="(rule, index) in notice.rules" :key="index" class="admin-links-notice-dialog__rule">
+                <input v-model="rule.icon" type="text" class="admin-links-notice-dialog__icon" placeholder="🎉">
+                <input v-model="rule.text" type="text" class="admin-links-notice-dialog__text" placeholder="规则内容">
+                <button
+                  type="button"
+                  class="admin-links-dialog__btn admin-links-dialog__btn--ghost"
+                  @click="notice.rules.splice(index, 1)"
+                >
+                  删除
+                </button>
+              </div>
+              <button
+                type="button"
+                class="admin-links-notice-dialog__add"
+                @click="notice.rules.push({ icon: '✨', text: '' })"
+              >
+                + 添加规则
+              </button>
+            </fieldset>
+
+            <label class="admin-links-dialog__field admin-links-dialog__field--wide">
+              <span>「本站信息」标题</span>
+              <input v-model="notice.siteInfoTitle" type="text" placeholder="本站友链信息如下：">
+            </label>
+
+            <fieldset class="admin-links-notice-dialog__group">
+              <legend>本站信息项</legend>
+              <p class="admin-links-notice-dialog__hint">
+                勾选「自动」的项会从站点设置实时读取（名称、链接、头像、描述），其余使用下方填写的内容。
+              </p>
+              <div v-for="(item, index) in notice.siteInfo" :key="index" class="admin-links-notice-dialog__rule">
+                <input v-model="item.label" type="text" class="admin-links-notice-dialog__icon" placeholder="标签">
+                <input v-model="item.value" type="text" class="admin-links-notice-dialog__text" :placeholder="item.auto ? '（自动获取）' : '填写内容'">
+                <label class="admin-links-notice-dialog__auto">
+                  <input v-model="item.auto" type="checkbox">
+                  <span>自动</span>
+                </label>
+                <button
+                  type="button"
+                  class="admin-links-dialog__btn admin-links-dialog__btn--ghost"
+                  @click="notice.siteInfo.splice(index, 1)"
+                >
+                  删除
+                </button>
+              </div>
+              <button
+                type="button"
+                class="admin-links-notice-dialog__add"
+                @click="notice.siteInfo.push({ label: '', value: '' })"
+              >
+                + 添加信息项
+              </button>
+            </fieldset>
+          </div>
+
+          <footer class="admin-links-dialog__foot">
+            <button
+              type="button"
+              class="admin-links-dialog__btn admin-links-dialog__btn--ghost"
+              @click="notice = JSON.parse(JSON.stringify(DEFAULT_FRIEND_LINK_NOTICE))"
+            >
+              恢复默认文案
+            </button>
+            <div class="admin-links-dialog__foot-spacer" />
+            <button type="button" class="admin-links-dialog__btn admin-links-dialog__btn--ghost" :disabled="saving" @click="noticeDialogOpen = false">
+              取消
+            </button>
+            <button type="button" class="admin-links-dialog__btn" :disabled="saving" @click="closeNoticeDialog">
+              {{ saving ? '保存中…' : '保存' }}
             </button>
           </footer>
         </div>
@@ -744,6 +870,86 @@ defineExpose({
 
     &__move {
       flex-direction: column;
+    }
+  }
+}
+
+/* 申请提示编辑对话框 */
+.admin-links-notice-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  &__group {
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    legend {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0 0.35rem;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  &__rule {
+    display: grid;
+    grid-template-columns: 56px 1fr auto auto;
+    gap: 0.5rem;
+    align-items: center;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 48px 1fr;
+    }
+
+    input[type='text'] {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 0.4rem 0.55rem;
+      font-size: 0.82rem;
+      min-width: 0;
+      width: 100%;
+    }
+  }
+
+  &__icon {
+    text-align: center;
+  }
+
+  &__auto {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  &__add {
+    align-self: flex-start;
+    border: 1px dashed #ccc;
+    background: transparent;
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    color: #666;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--admin-pink);
+      color: var(--admin-pink);
     }
   }
 }

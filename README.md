@@ -54,28 +54,16 @@
 
 大部分应该都写上去了，可能会漏掉一些~
 #### 友链公告
-这部分比较特殊，被写死了，所以没再配置文件里面，具体修改位置在`\AueXUE\components\FriendLinkNotice.vue`文件内，具体位置在
-```
-          本站友链信息如下：
-        </p>
-        <ul class="friend-link-site-info__list">
-          <li>
-            站点名称：<span class="friend-link-highlight">AIOVTUE-雪</span>
-          </li>
-          <li>
-            站点链接：<span class="friend-link-highlight">https://live.yybb.us</span>
-          </li>
-          <li>
-            站长头像：<span class="friend-link-highlight">{{ siteInfo.avatar }}</span>
-          </li>
-          <li>
-            站点描述：<span class="friend-link-highlight">雨滴会记录生命中的每一个瞬间</span>
-          </li>
-          <li>
-            站点截图：<span class="friend-link-highlight">https://r2tc.20030327.xyz/file/博客/主题/1780909850378_1780909790262.png</span>
-          </li>
-```
-具体在这部分，正常情况会自动获取站点配置，但是部分信息得自己改，修改很简单，直接把对应文字或者链接改为自己的即可
+友链页顶部的「加入本站友链方式」提示（标题、副标题、YAML 模板、申请规则、本站信息）现在可以在后台编辑，不再写死在代码里。
+
+路径：后台 → **友链管理** → 顶部「申请提示」按钮。可调整：
+
+- 标题与副标题
+- YAML 模板（留言格式示例）
+- 申请规则（图标 + 文案，可增删改）
+- 「本站信息」的各项标签与内容；勾选「自动」的项会从站点设置实时读取（名称、链接、头像、描述）
+
+内容随友链页面一起保存在 `links/index.md` 的 `friendLinkNotice` 字段，点「恢复默认文案」可回到初始版本。
 
 ### 部署
 #### 本地部署预览

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useSiteConfig } from 'valaxy'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useDynamicLinks } from '../composables/useDynamicLinks'
+import type { FriendLinkNoticeConfig, FriendLinkSiteInfoItem } from '../types/links'
 
 const props = withDefaults(defineProps<{
   siteshot?: string
@@ -9,38 +11,59 @@ const props = withDefaults(defineProps<{
 })
 
 const siteConfig = useSiteConfig()
+const { linksData, loadLinks } = useDynamicLinks()
 
-const ymlTemplate = `- name: #站点名称
-  link: #站点链接
-  avatar: #站长头像
-  descr: #站点描述
-  siteshot: #站点截图`
-
-const ymlLines = computed(() => ymlTemplate.split('\n'))
-
-const siteInfo = computed(() => {
-  const url = siteConfig.value.url || ''
-  return {
-    name: `${siteConfig.value.title || 'AIOVTUE'}'s blog`,
-    url: url.endsWith('/') ? url : `${url}/`,
-    avatar: siteConfig.value.author?.avatar || '',
-    desc: siteConfig.value.description || '',
-    siteshot: props.siteshot,
-  }
+onMounted(() => {
+  // 静默加载；失败时 component 使用服务端默认值渲染
+  void loadLinks()
 })
 
-const rules = [
-  { icon: '🎉', text: '本站支持交换友链，在您提出申请之前，请将本站添加到友链' },
-  { icon: '🍵', text: '为了保障本站用户，本站仅支持个人网站的友链申请' },
-  { icon: '💡', text: '申请本站友链需要拥有独立域名（非免费域名），建议开启全站 HTTPS' },
-  { icon: '⌛', text: '如果友情链接已经添加，请保持网站的正常访问，会定期清理僵尸网站' },
-  { icon: '🐚', text: '网站有一定的实质性内容和主题，不能是空壳网站和练手网站' },
-  { icon: '💕', text: '感谢您对本站的支持，如果您已经满足上述要求，请在下方表单提交友链申请~~~' },
-]
+/** 后台「友链管理」里的提示配置；未加载到时不渲染（避免闪烁默认值） */
+const notice = computed<FriendLinkNoticeConfig | null>(() => {
+  const data = linksData.value
+  if (!data)
+    return null
+  return (data.friendLinkNotice as FriendLinkNoticeConfig | undefined) || null
+})
+
+const visible = computed(() => Boolean(notice.value && notice.value.enable !== false))
+
+const title = computed(() => notice.value?.title || '加入本站友链方式')
+const subtitle = computed(() => notice.value?.subtitle || '')
+
+const ymlLines = computed(() => (notice.value?.template || '').split('\n'))
+
+const rules = computed(() => notice.value?.rules || [])
+
+const siteInfoTitle = computed(() => notice.value?.siteInfoTitle || '本站友链信息如下：')
+
+/**
+ * 本站信息各项：标记了 auto 的从站点配置实时取，
+ * 其余用后台填写的固定值。
+ */
+const siteInfoItems = computed(() => {
+  const url = siteConfig.value.url || ''
+  const normalizedUrl = url.endsWith('/') ? url : `${url}/`
+  const autoValues: Record<string, string> = {
+    站点名称: `${siteConfig.value.title || 'AIOVTUE'}'s blog`,
+    站点链接: normalizedUrl,
+    站长头像: siteConfig.value.author?.avatar || '',
+    站点描述: siteConfig.value.description || '',
+    站点截图: props.siteshot,
+  }
+
+  const items = notice.value?.siteInfo || []
+  return items
+    .map((item: FriendLinkSiteInfoItem) => {
+      const value = item.auto ? (autoValues[item.label] ?? item.value) : item.value
+      return { label: item.label, value }
+    })
+    .filter(item => item.value)
+})
 
 async function copyYml() {
   try {
-    await navigator.clipboard.writeText(ymlTemplate)
+    await navigator.clipboard.writeText(ymlLines.value.join('\n'))
   }
   catch (err) {
     console.error(err)
@@ -49,14 +72,14 @@ async function copyYml() {
 </script>
 
 <template>
-  <section class="friend-link-notice">
+  <section v-if="visible" class="friend-link-notice">
     <header class="friend-link-notice__header">
       <h2 class="friend-link-notice__title">
         <span class="friend-link-notice__title-icon" aria-hidden="true">✦</span>
-        加入本站友链方式
+        {{ title }}
       </h2>
-      <p class="friend-link-notice__subtitle">
-        参照以下格式留言即可
+      <p v-if="subtitle" class="friend-link-notice__subtitle">
+        {{ subtitle }}
       </p>
     </header>
 
@@ -102,26 +125,14 @@ async function copyYml() {
         </li>
       </ul>
 
-      <div class="friend-link-site-info">
+      <div v-if="siteInfoItems.length" class="friend-link-site-info">
         <p class="friend-link-site-info__title">
           <span aria-hidden="true">📍</span>
-          本站友链信息如下：
+          {{ siteInfoTitle }}
         </p>
         <ul class="friend-link-site-info__list">
-          <li>
-            站点名称：<span class="friend-link-highlight">AIOVTUE-雪</span>
-          </li>
-          <li>
-            站点链接：<span class="friend-link-highlight">https://live.yybb.us</span>
-          </li>
-          <li>
-            站长头像：<span class="friend-link-highlight">{{ siteInfo.avatar }}</span>
-          </li>
-          <li>
-            站点描述：<span class="friend-link-highlight">雨滴会记录生命中的每一个瞬间</span>
-          </li>
-          <li>
-            站点截图：<span class="friend-link-highlight">https://r2tc.20030327.xyz/file/博客/主题/1780909850378_1780909790262.png</span>
+          <li v-for="item in siteInfoItems" :key="item.label">
+            {{ item.label }}：<span class="friend-link-highlight">{{ item.value }}</span>
           </li>
         </ul>
       </div>

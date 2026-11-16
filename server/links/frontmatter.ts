@@ -127,6 +127,34 @@ export function serializeLinksFrontmatter(frontmatter: LinksFrontmatter, content
   if (frontmatter.errorImg?.trim())
     payload.errorImg = frontmatter.errorImg.trim()
 
+  // 友链申请提示：原样写入 frontmatter，读取时由 normalizeFriendLinkNotice 补全
+  const notice = frontmatter.friendLinkNotice
+  if (notice && typeof notice === 'object') {
+    const noticePayload: Record<string, unknown> = {}
+    if (notice.enable === false)
+      noticePayload.enable = false
+    if (notice.title?.trim())
+      noticePayload.title = notice.title.trim()
+    if (notice.subtitle?.trim())
+      noticePayload.subtitle = notice.subtitle.trim()
+    if (notice.template?.trim())
+      noticePayload.template = notice.template
+    if (Array.isArray(notice.rules) && notice.rules.length)
+      noticePayload.rules = notice.rules.map(rule => ({ icon: rule.icon || '', text: rule.text || '' }))
+    if (notice.siteInfoTitle?.trim())
+      noticePayload.siteInfoTitle = notice.siteInfoTitle.trim()
+    if (Array.isArray(notice.siteInfo) && notice.siteInfo.length) {
+      noticePayload.siteInfo = notice.siteInfo.map((item) => {
+        const entry: Record<string, unknown> = { label: item.label, value: item.value ?? '' }
+        if (item.auto)
+          entry.auto = true
+        return entry
+      })
+    }
+    if (Object.keys(noticePayload).length)
+      payload.friendLinkNotice = noticePayload
+  }
+
   const groups = extractLinkGroups(frontmatter)
   payload.linkGroups = groups.map((group) => {
     const entry: Record<string, unknown> = {}
