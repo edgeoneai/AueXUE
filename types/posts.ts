@@ -25,6 +25,7 @@ export interface PostRecord {
   categories: string | null
   tags: string | null
   cover: string | null
+  series?: string | null
   pin_order?: number
   published: number
   r2_key: string
@@ -41,6 +42,8 @@ export interface PostListItem {
   categories?: string | string[]
   tags?: string[]
   cover?: string
+  /** 所属系列名 */
+  series?: string
   path: string
   top?: number | boolean
   pin_order?: number

@@ -34,6 +34,7 @@ function recordToListItem(row: PostRecord): PostListItem {
     categories,
     tags,
     cover: row.cover || undefined,
+    series: row.series || undefined,
     path: encodePostPath(row.slug),
     pin_order: row.pin_order ?? 0,
   }

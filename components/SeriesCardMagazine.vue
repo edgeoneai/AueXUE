@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
-import WeeklyMagazineDate from './WeeklyMagazineDate.vue'
+import SeriesMagazineDate from './SeriesMagazineDate.vue'
 
 const props = defineProps<{
   title: string
@@ -28,7 +28,7 @@ const isReverse = computed(() => props.reverse === true)
     :class="isReverse ? 'weekly-card--layout-b' : 'weekly-card--layout-a'"
   >
     <a class="weekly-card__link" :href="link" :aria-label="`阅读全文：${title}`">
-      <WeeklyMagazineDate v-if="!isReverse" :date="date" :issue="issue" />
+      <SeriesMagazineDate v-if="!isReverse" :date="date" :issue="issue" />
 
       <div v-else class="weekly-card__media">
         <div class="weekly-card__media-shape">
@@ -69,7 +69,7 @@ const isReverse = computed(() => props.reverse === true)
         </div>
       </div>
 
-      <WeeklyMagazineDate v-if="isReverse" :date="date" :issue="issue" />
+      <SeriesMagazineDate v-if="isReverse" :date="date" :issue="issue" />
 
       <div v-else class="weekly-card__media">
         <div class="weekly-card__media-shape">

@@ -3,7 +3,7 @@ import { useFrontmatter } from 'valaxy'
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSiteSettings } from '../../composables/useSiteSettings'
-import WeeklyBoard from '../WeeklyBoard.vue'
+import SeriesBoard from '../SeriesBoard.vue'
 
 const route = useRoute()
 const staticFrontmatter = useFrontmatter()
@@ -14,66 +14,63 @@ onMounted(() => {
     void loadSettings()
 })
 
-/** 页面标题与归类分类由后台「站点设置 → 周刊页」决定，未取到时回落默认值 */
-const weekly = computed(() => settings.value?.weekly)
-
-const WEEKLY_PAGE_COVER = '/weekly/cover.png'
+const series = computed(() => settings.value?.series)
+const SERIES_PAGE_COVER = '/series/cover.png'
 
 const frontmatter = computed(() => {
   const routeFrontmatter = (route.meta.frontmatter || {}) as Record<string, unknown>
   const base = { ...(staticFrontmatter.value || {}), ...routeFrontmatter }
   return {
     ...base,
-    title: weekly.value?.title || String(base.title || '周刊'),
-    icon: String(base.icon || 'i-ri-newspaper-line'),
-    cover: typeof base.cover === 'string' && base.cover.trim() ? base.cover : WEEKLY_PAGE_COVER,
+    title: series.value?.title || String(base.title || '系列'),
+    icon: String(base.icon || 'i-ri-stack-line'),
+    cover: typeof base.cover === 'string' && base.cover.trim() ? base.cover : SERIES_PAGE_COVER,
   }
 })
 
 const coverSrc = computed(() => frontmatter.value.cover)
-
-const category = computed(() => weekly.value?.category || '周刊')
-const enabled = computed(() => weekly.value?.enable !== false)
-const batchSize = computed(() => weekly.value?.batchSize || 10)
-const featured = computed(() => weekly.value?.featured !== false)
+const enabled = computed(() => series.value?.enable !== false)
+const batchSize = computed(() => series.value?.batchSize || 10)
+const featured = computed(() => series.value?.featured !== false)
+const items = computed(() => series.value?.items || [])
 </script>
 
 <template>
-  <article class="sakura-page sakura-weekly-page">
+  <article class="sakura-page sakura-series-page">
     <header
-      class="weekly-page-header sakura-page-header"
+      class="series-page-header sakura-page-header"
       :class="{ 'has-cover': coverSrc }"
     >
       <img
         v-if="coverSrc"
-        class="weekly-page-header__cover"
+        class="series-page-header__cover"
         :src="coverSrc"
-        :alt="frontmatter.title || '周刊页头图'"
+        :alt="frontmatter.title || '系列页头图'"
         loading="eager"
         decoding="async"
       >
 
-      <div class="weekly-page-header__inner sakura-safe-padding">
+      <div class="series-page-header__inner sakura-safe-padding">
         <div class="sakura-header-title" flex="~">
           <SakuraTitle :fm="frontmatter" />
         </div>
       </div>
     </header>
 
-    <div class="weekly-page-main">
+    <div class="series-page-main">
       <div class="content sakura-page-content">
         <RouterView v-slot="{ Component }">
           <component :is="Component">
             <template #main-content>
-              <p v-if="!enabled" class="weekly-disabled">
-                周刊页未启用，可在后台「站点设置 → 周刊页」开启。
+              <p v-if="!enabled" class="series-disabled">
+                系列页未启用，可在后台「系列管理」开启。
               </p>
-              <WeeklyBoard
+              <SeriesBoard
                 v-else
                 :title="frontmatter.title"
-                :category="category"
                 :batch-size="batchSize"
                 :featured="featured"
+                :items="items"
               />
             </template>
           </component>
@@ -84,22 +81,14 @@ const featured = computed(() => weekly.value?.featured !== false)
 </template>
 
 <style lang="scss" scoped>
-.sakura-weekly-page {
+.sakura-series-page {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
 }
 
-.weekly-page-main {
-  width: 100%;
-  max-width: 880px;
-  margin-inline: auto;
-  padding-inline: max(40px, 3vw, env(safe-area-inset-left, 0px));
-  padding-bottom: 48px;
-}
-
-.weekly-page-header {
+.series-page-header {
   width: 100%;
   position: relative;
   margin-top: var(--sakura-navbar-height);
@@ -147,7 +136,15 @@ const featured = computed(() => weekly.value?.featured !== false)
   }
 }
 
-.weekly-disabled {
+.series-page-main {
+  width: 100%;
+  max-width: 880px;
+  margin-inline: auto;
+  padding-inline: max(40px, 3vw, env(safe-area-inset-left, 0px));
+  padding-bottom: 48px;
+}
+
+.series-disabled {
   margin: 2rem 0;
   text-align: center;
   color: var(--va-c-text-light);

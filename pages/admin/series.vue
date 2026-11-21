@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import AdminWeeklyEditor from '../../components/admin/AdminWeeklyEditor.vue'
+import AdminSeriesEditor from '../../components/admin/AdminSeriesEditor.vue'
 import { useAdminAuth } from '../../composables/useAdminAuth'
 import { useSiteSettings } from '../../composables/useSiteSettings'
 import { fetchSiteSettings, saveSiteSettings } from '../../utils/siteSettingsApi'
@@ -13,9 +13,10 @@ const router = useRouter()
 const { isAuthenticated, refresh, loading, username, logout } = useAdminAuth()
 const { loadSettings } = useSiteSettings()
 
-const editorRef = ref<InstanceType<typeof AdminWeeklyEditor> | null>(null)
+const editorRef = ref<InstanceType<typeof AdminSeriesEditor> | null>(null)
 const pageLoading = ref(true)
 const error = ref<string | null>(null)
+const notice = ref<{ type: 'success' | 'error', text: string } | null>(null)
 const initial = ref<SiteSettings>(JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)) as SiteSettings)
 
 onMounted(async () => {
@@ -31,7 +32,7 @@ onMounted(async () => {
     initial.value = rest
   }
   catch (err) {
-    error.value = err instanceof Error ? err.message : '加载周刊设置失败'
+    error.value = err instanceof Error ? err.message : '加载系列设置失败'
   }
   finally {
     pageLoading.value = false
@@ -40,14 +41,14 @@ onMounted(async () => {
 
 async function handleSave(payload: SiteSettings) {
   editorRef.value?.setSaving(true)
+  notice.value = null
   try {
     const saved = await saveSiteSettings(payload)
     const { updatedAt: _updatedAt, ...rest } = saved
     initial.value = rest
-    // 保存后立刻把新设置应用到当前运行时，无需刷新即可看到变化
     applySiteSettings({ ...rest, updatedAt: saved.updatedAt })
     await loadSettings(true)
-    editorRef.value?.setSuccess('周刊设置已保存')
+    editorRef.value?.setSuccess('系列设置已保存')
   }
   catch (err) {
     editorRef.value?.setError(err instanceof Error ? err.message : '保存失败')
@@ -71,7 +72,7 @@ async function handleLogout() {
     <p v-else-if="error" class="admin-page-error">
       {{ error }}
     </p>
-    <AdminWeeklyEditor
+    <AdminSeriesEditor
       v-else-if="isAuthenticated"
       ref="editorRef"
       :initial="initial"

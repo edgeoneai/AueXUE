@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { PostFrontmatter } from '../../types/posts'
-import { computed, inject, onBeforeUnmount, ref, watch, type Ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import AdminMarkdownEditor from './AdminMarkdownEditor.vue'
 import { adminTopbarTargetKey } from '../../utils/adminShellContext'
 import { isValidPostSlug, serializeFrontmatter } from '../../utils/postFrontmatter'
 import { normalizePinOrder } from '../../utils/pinOrder'
 import { useAdminToast } from '../../composables/useAdminToast'
+import { useSiteSettings } from '../../composables/useSiteSettings'
 
 const props = defineProps<{
   mode: 'create' | 'edit'
@@ -29,6 +30,17 @@ const updated = ref(initDateField(props.initialFrontmatter?.updated, props.mode 
 const excerpt = ref(String(props.initialFrontmatter?.excerpt || ''))
 const cover = ref(String(props.initialFrontmatter?.cover || ''))
 const categories = ref(formatCategories(props.initialFrontmatter?.categories))
+/** 加入系列：开关 + 系列名（与文章 frontmatter.series 对应） */
+const initialSeries = String((props.initialFrontmatter as any)?.series || '')
+const joinSeries = ref(Boolean(initialSeries))
+const seriesName = ref(initialSeries)
+/** 可选系列名列表：来自站点设置 series.items */
+const { settings: siteSettings, loaded: settingsLoaded, loadSettings } = useSiteSettings()
+const seriesOptions = computed(() => (siteSettings.value?.series?.items ?? []).map(item => item.name).filter(Boolean))
+onMounted(() => {
+  if (!settingsLoaded.value)
+    void loadSettings()
+})
 const pinOrder = ref(initPinOrderField(props.initialFrontmatter))
 const tagList = ref(parseTags(props.initialFrontmatter?.tags))
 const tagInput = ref('')
@@ -199,6 +211,11 @@ function buildFrontmatter(): PostFrontmatter {
   const categoriesText = asText(categories.value).trim()
   if (categoriesText)
     fm.categories = categoriesText
+
+  // 加入系列：开启且填了系列名才写入
+  const seriesText = asText(seriesName.value).trim()
+  if (joinSeries.value && seriesText)
+    fm.series = seriesText
 
   if (tagList.value.length)
     fm.tags = [...tagList.value]
@@ -393,6 +410,32 @@ defineExpose({
 
         <section class="admin-editor__panel">
           <h2 class="admin-editor__panel-title">
+            系列
+          </h2>
+          <label class="admin-editor__series-check">
+            <input v-model="joinSeries" type="checkbox">
+            <span>加入系列</span>
+          </label>
+          <div v-if="joinSeries" class="admin-editor__panel-field">
+            <label for="admin-series">系列名</label>
+            <input
+              id="admin-series"
+              v-model="seriesName"
+              type="text"
+              list="admin-series-options"
+              placeholder="选择或输入系列名"
+            >
+            <datalist id="admin-series-options">
+              <option v-for="name in seriesOptions" :key="name" :value="name" />
+            </datalist>
+            <p v-if="!seriesOptions.length" class="admin-editor__series-hint">
+              还没有可选的系列，可先到「系列管理」新建系列。
+            </p>
+          </div>
+        </section>
+
+        <section class="admin-editor__panel">
+          <h2 class="admin-editor__panel-title">
             标签
           </h2>
           <div class="admin-editor__tags">
@@ -444,6 +487,25 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
+.admin-editor__series-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+
+  input[type='checkbox'] {
+    width: auto;
+    margin: 0;
+  }
+}
+
+.admin-editor__series-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  color: var(--admin-muted-color, #888);
+}
+
 .admin-editor {
   --admin-pink: #e93d6d;
   --admin-border: 1px solid #000;

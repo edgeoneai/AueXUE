@@ -132,12 +132,12 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     layout: 'cards',
     listSidebar: true,
   },
-  weekly: {
+  series: {
     enable: true,
-    title: '周刊',
-    category: '周刊',
+    title: '系列',
     batchSize: 10,
     featured: true,
+    items: [],
   },
   navigationVideos: [
     { url: '/img/1.mp4', weight: 1 },

@@ -243,7 +243,7 @@ function importPosts(root, options) {
 
     const sql = `
       INSERT INTO posts (
-        slug, title, excerpt, description, date, updated, categories, tags, cover, pin_order, published, r2_key, updated_at
+        slug, title, excerpt, description, date, updated, categories, tags, cover, series, pin_order, published, r2_key, updated_at
       ) VALUES (
         ${sqlValue(slug)},
         ${sqlValue(String(title))},
@@ -254,6 +254,7 @@ function importPosts(root, options) {
         ${sqlValue(fm.categories ? JSON.stringify(fm.categories) : null)},
         ${sqlValue(tags ? JSON.stringify(tags) : null)},
         ${sqlValue(fm.cover !== undefined ? String(fm.cover) : null)},
+        ${sqlValue(fm.series !== undefined && String(fm.series).trim() !== '' ? String(fm.series).trim() : null)},
         ${normalizePinOrder(fm.pin_order ?? fm.top)},
         ${isPublished(fm) ? 1 : 0},
         ${sqlValue(r2Key)},
@@ -268,6 +269,7 @@ function importPosts(root, options) {
         categories = excluded.categories,
         tags = excluded.tags,
         cover = excluded.cover,
+        series = excluded.series,
         pin_order = excluded.pin_order,
         published = excluded.published,
         r2_key = excluded.r2_key,

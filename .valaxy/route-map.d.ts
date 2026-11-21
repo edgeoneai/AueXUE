@@ -122,16 +122,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/admin/settings': RouteRecordInfo<
-      '/admin/settings',
-      '/admin/settings',
+    '/admin/series': RouteRecordInfo<
+      '/admin/series',
+      '/admin/series',
       Record<never, never>,
       Record<never, never>,
       | never
     >,
-    '/admin/weekly': RouteRecordInfo<
-      '/admin/weekly',
-      '/admin/weekly',
+    '/admin/settings': RouteRecordInfo<
+      '/admin/settings',
+      '/admin/settings',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -227,16 +227,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/tags/': RouteRecordInfo<
-      '/tags/',
-      '/tags',
+    '/series/': RouteRecordInfo<
+      '/series/',
+      '/series',
       Record<never, never>,
       Record<never, never>,
       | never
     >,
-    '/weekly/': RouteRecordInfo<
-      '/weekly/',
-      '/weekly',
+    '/tags/': RouteRecordInfo<
+      '/tags/',
+      '/tags',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -358,17 +358,17 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'pages/admin/settings.vue': {
+    'pages/admin/series.vue': {
       routes:
-        | '/admin/settings'
+        | '/admin/series'
       views:
         | never
       pathParamNames:
         | never
     }
-    'pages/admin/weekly.vue': {
+    'pages/admin/settings.vue': {
       routes:
-        | '/admin/weekly'
+        | '/admin/settings'
       views:
         | never
       pathParamNames:
@@ -478,17 +478,17 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'pages/tags/index.md': {
+    'pages/series/index.vue': {
       routes:
-        | '/tags/'
+        | '/series/'
       views:
         | never
       pathParamNames:
         | never
     }
-    'pages/weekly/index.vue': {
+    'pages/tags/index.md': {
       routes:
-        | '/weekly/'
+        | '/tags/'
       views:
         | never
       pathParamNames:

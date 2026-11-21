@@ -25,6 +25,7 @@ const EXTRA_ICONS = [
   'i-mdi-refresh',
   'i-mdi-plus',
   'i-mdi-pin',
+  'i-ri-arrow-left-line',
   'i-ri-arrow-right-line',
   'i-ri-disc-line',
   'i-ri-arrow-down-s-line',

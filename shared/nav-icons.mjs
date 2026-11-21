@@ -23,9 +23,9 @@ export const mainNavItems = [
     link: '/files',
   },
   {
-    text: '周刊',
-    icon: 'i-ant-design:schedule-filled',
-    link: '/weekly',
+    text: '系列',
+    icon: 'i-ant-design:appstore-filled',
+    link: '/series',
   },
   {
     text: '管理',

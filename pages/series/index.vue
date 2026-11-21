@@ -5,9 +5,9 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const mergedFrontmatter = computed(() => ({
-  title: '周刊',
-  icon: 'i-ri-newspaper-line',
-  layout: 'weekly',
+  title: '系列',
+  icon: 'i-ri-stack-line',
+  layout: 'series',
   comment: false,
 }))
 
@@ -24,8 +24,8 @@ watch(mergedFrontmatter, applyRouteFrontmatter, { immediate: true })
 
 <route lang="yaml">
 meta:
-  layout: weekly
-  title: 周刊
-  icon: i-ri-newspaper-line
+  layout: series
+  title: 系列
+  icon: i-ri-stack-line
   comment: false
 </route>

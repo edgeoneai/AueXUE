@@ -97,18 +97,28 @@ export interface HomeSettings {
   listSidebar: boolean
 }
 
-/** 周刊页 */
-export interface WeeklySettings {
-  /** 是否在导航中显示周刊入口 */
+/** 系列的封面与简介（每个系列一条，文章通过 frontmatter.series 关联） */
+export interface SeriesItem {
+  /** 系列名，与文章 frontmatter.series 对应 */
+  name: string
+  /** 系列封面（未单独设封面的文章会沿用它） */
+  cover: string
+  /** 系列简介 */
+  description: string
+}
+
+/** 系列页 */
+export interface SeriesSettings {
+  /** 是否启用系列页 */
   enable: boolean
   /** 页面标题 */
   title: string
-  /** 归入周刊的文章分类名 */
-  category: string
-  /** 每批展示期数（滚动到底自动加载下一批） */
+  /** 每批展示文章数（滚动到底自动加载下一批） */
   batchSize: number
-  /** 是否把最新一期做成头条大卡片 */
+  /** 是否把最新一篇做成头条大卡片 */
   featured: boolean
+  /** 系列列表：封面与简介 */
+  items: SeriesItem[]
 }
 
 /** 追番页（Bilibili 追番列表，构建时拉取） */
@@ -216,8 +226,8 @@ export interface SiteSettings {
   navigationVideos: NavigationVideo[]
   /** 追番页 */
   bangumi: BangumiSettings
-  /** 周刊页 */
-  weekly: WeeklySettings
+  /** 系列页 */
+  series: SeriesSettings
   /** 固定位置音乐播放器 */
 export interface MusicSettings {
   /** 是否显示播放器 */

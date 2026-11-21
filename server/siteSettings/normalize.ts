@@ -8,7 +8,8 @@ import type {
   NavigationVideo,
   PersonalizeSettings,
   ServiceSettings,
-  WeeklySettings,
+  SeriesItem,
+  SeriesSettings,
   SiteSettings,
   SiteSocialLink,
   SponsorMethod,
@@ -177,13 +178,36 @@ function normalizeHome(raw: Record<string, unknown>, fallback: HomeSettings): Ho
   }
 }
 
-function normalizeWeekly(raw: Record<string, unknown>, fallback: WeeklySettings): WeeklySettings {
+/** 系列列表：只保留有名字的条目，同名去重 */
+function seriesItems(value: unknown, fallback: SeriesItem[]): SeriesItem[] {
+  if (!Array.isArray(value))
+    return fallback
+  const seen = new Set<string>()
+  const list: SeriesItem[] = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object')
+      continue
+    const item = raw as Record<string, unknown>
+    const name = str(item.name).trim()
+    if (!name || seen.has(name))
+      continue
+    seen.add(name)
+    list.push({
+      name,
+      cover: str(item.cover).trim(),
+      description: str(item.description).trim(),
+    })
+  }
+  return list
+}
+
+function normalizeSeries(raw: Record<string, unknown>, fallback: SeriesSettings): SeriesSettings {
   return {
     enable: bool(raw.enable, fallback.enable),
     title: str(raw.title, fallback.title).trim() || fallback.title,
-    category: str(raw.category, fallback.category).trim() || fallback.category,
     batchSize: Math.min(50, num(raw.batchSize, fallback.batchSize, 1)),
     featured: bool(raw.featured, fallback.featured),
+    items: seriesItems(raw.items, fallback.items),
   }
 }
 
@@ -254,7 +278,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
   const musicRaw = (raw.music && typeof raw.music === 'object' ? raw.music : {}) as Record<string, unknown>
   const homeRaw = (raw.home && typeof raw.home === 'object' ? raw.home : {}) as Record<string, unknown>
-  const weeklyRaw = (raw.weekly && typeof raw.weekly === 'object' ? raw.weekly : {}) as Record<string, unknown>
+  const seriesRaw = (raw.series && typeof raw.series === 'object' ? raw.series : {}) as Record<string, unknown>
   const bangumiRaw = (raw.bangumi && typeof raw.bangumi === 'object' ? raw.bangumi : {}) as Record<string, unknown>
   const serviceRaw = (raw.service && typeof raw.service === 'object' ? raw.service : {}) as Record<string, unknown>
   const interactionRaw = (raw.interaction && typeof raw.interaction === 'object' ? raw.interaction : {}) as Record<string, unknown>
@@ -292,7 +316,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
     personalize: normalizePersonalize(personalizeRaw, fallback.personalize),
     navigationVideos: navigationVideos(raw.navigationVideos, fallback.navigationVideos),
     bangumi: normalizeBangumi(bangumiRaw, fallback.bangumi),
-    weekly: normalizeWeekly(weeklyRaw, fallback.weekly),
+    series: normalizeSeries(seriesRaw, fallback.series),
     home: normalizeHome(homeRaw, fallback.home),
     music: normalizeMusic(musicRaw, fallback.music),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
