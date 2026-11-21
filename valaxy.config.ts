@@ -198,11 +198,13 @@ export default defineValaxyConfig({
     navigationMerge: true // 合并导航显示
   }, 
 
-  // 文章页「本文字数 / 阅读时长」
+  // 文章页「本文字数 / 阅读时长」「分类 · 标签」
   post: {
     meta: {
       // 是否在文章页显示本文字数与预计阅读时长；默认 false = 保持现状（不显示）
       wordCount: false,
+      // 是否在文章页头以同一行显示「分类：… · 标签：…」；默认 false = 保持现状（不显示）
+      taxonomy: false,
     },
   },
 
