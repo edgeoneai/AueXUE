@@ -291,6 +291,9 @@ const socialCount = computed(() => form.value.social.length)
         <span>备案信息（支持 HTML）</span>
         <textarea v-model="form.footer.icp" rows="2" />
       </label>
+      <div class="site-settings__checks">
+        <label><input v-model="form.footer.footLinks" type="checkbox"> 页脚显示友链导航（前两个分组共 12 条）</label>
+      </div>
     </section>
 
     <section class="site-settings__section">

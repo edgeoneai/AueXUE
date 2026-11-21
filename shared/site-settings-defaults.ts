@@ -82,6 +82,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   footer: {
     runtimeSince: '2024-01-01',
     since: 2024,
+    footLinks: false,
     icp: '<a href="https://icp.gov.moe/?keyword=20260258" target="_blank" rel="noopener">萌ICP备20260258号</a>',
     icon: {
       animated: true,

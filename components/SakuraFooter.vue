@@ -4,12 +4,15 @@ import { useConfig } from 'valaxy'
 import { useAddonVercount } from 'valaxy-addon-vercount'
 import { isClient } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDynamicLinks } from '../composables/useDynamicLinks'
 
 interface FooterConfig {
   icp?: string
   powered?: boolean
   runtimeSince?: string
   visitors?: boolean
+  /** 是否在页脚显示友链导航（取友链前两个分组，共 12 条） */
+  footLinks?: boolean
 }
 
 interface RuntimeParts {
@@ -34,6 +37,38 @@ const footer = computed(() => {
 })
 
 const runtime = ref<RuntimeParts | null>(null)
+
+/* ---------- 页脚友链导航 ---------- */
+const { linksData, loadLinks } = useDynamicLinks()
+const footerLinks = ref<Array<{ url: string, name: string }>>([])
+
+const SHOW_FOOT_LINKS = computed(() => footer.value.footLinks === true)
+const FOOT_LINK_TOTAL = 12
+const FIRST_GROUP_MAX = 8
+
+onMounted(() => {
+  if (SHOW_FOOT_LINKS.value)
+    void loadLinks()
+})
+
+/** 只取前两个分组：第一组最多 8 条，第二组补足到 12 条（与上游 footer-links-prepare 一致） */
+function rebuildFooterLinks() {
+  const groups = linksData.value?.linkGroups ?? []
+  const toItems = (group?: { links?: Array<{ url?: string, name?: string, blog?: string }> }) =>
+    (group?.links ?? [])
+      .filter(item => item?.url)
+      .map(item => ({ url: String(item.url), name: String(item.blog || item.name || item.url) }))
+
+  const g1 = toItems(groups[0]).slice(0, FIRST_GROUP_MAX)
+  const need = Math.max(0, FOOT_LINK_TOTAL - g1.length)
+  const g2 = toItems(groups[1]).slice(0, need)
+  footerLinks.value = [...g1, ...g2]
+}
+
+watch([linksData, SHOW_FOOT_LINKS], () => {
+  if (SHOW_FOOT_LINKS.value)
+    rebuildFooterLinks()
+}, { immediate: true })
 
 let timer: ReturnType<typeof setInterval> | undefined
 
@@ -185,11 +220,46 @@ const visitorItems = computed(() => {
 
     <SakuraPowered v-if="footer.powered" />
 
+    <!-- 友链导航：与上游页脚一致，取友链前两个分组共 12 条 -->
+    <nav v-if="footerLinks.length" class="sakura-footer-links" aria-label="友链">
+      <ul class="sakura-footer-links__list">
+        <li v-for="item in footerLinks" :key="item.url">
+          <a :href="item.url" target="_blank" rel="friend noopener">{{ item.name }}</a>
+        </li>
+      </ul>
+    </nav>
+
     <slot />
   </footer>
 </template>
 
 <style lang="scss" scoped>
+/* 页脚友链导航：紧凑横向排列，换行自适应 */
+.sakura-footer-links {
+  margin-top: 0.5rem;
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    font-size: 0.75rem;
+    color: var(--va-c-text-light);
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--va-c-primary);
+    }
+  }
+}
+
 .sakura-footer-runtime {
   margin: 0;
   padding: 4px 0 8px;

@@ -52,6 +52,8 @@ export interface FooterSettings {
   since: number
   /** 备案信息（可含 HTML） */
   icp?: string
+  /** 是否在页脚显示友链导航 */
+  footLinks?: boolean
   /** 页脚图标 */
   icon?: {
     animated?: boolean

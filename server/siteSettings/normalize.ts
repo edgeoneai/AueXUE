@@ -137,6 +137,7 @@ function normalizeFooter(value: unknown, fallback: FooterSettings): FooterSettin
     runtimeSince: str(raw.runtimeSince, fallback.runtimeSince),
     since: num(raw.since, fallback.since),
     icp: str(raw.icp, fallback.icp || '') || undefined,
+    footLinks: bool(raw.footLinks, fallback.footLinks ?? false),
     icon: {
       animated: bool(iconRaw.animated, fallback.icon?.animated ?? true),
       url: str(iconRaw.url, fallback.icon?.url || '') || undefined,

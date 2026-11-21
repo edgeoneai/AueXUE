@@ -89,6 +89,7 @@ export function applySiteSettings(settings: SiteSettingsDetail | null) {
     runtimeSince: settings.footer.runtimeSince,
     since: settings.footer.since,
     icp: settings.footer.icp,
+    footLinks: settings.footer.footLinks === true,
     icon: {
       ...(themeConfig.footer?.icon || {}),
       ...(settings.footer.icon || {}),
