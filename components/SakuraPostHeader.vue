@@ -2,9 +2,10 @@
   本文件覆盖 valaxy-theme-sakura 0.10.2 的 SakuraPostHeader，升级主题需复核
 
   本次改动为「只增不改」：保留主题原版的 props 与模板结构（SakuraPageHeader + SakuraPostHeaderMeta），
-  仅在 meta 信息之后追加一行「本文字数 / 阅读时长」。
-  该行严格受 themeConfig.post.meta.wordCount 开关控制；开关为 false（默认）时不渲染任何内容，
-  组件输出与主题原版完全一致。
+  仅在 meta 信息之后按需追加两行，各自受独立开关控制，默认均不渲染：
+  1. 「本文字数 / 阅读时长」—— themeConfig.post.meta.wordCount
+  2. 「分类：… · 标签：…」    —— themeConfig.post.meta.taxonomy
+  两个开关都为 false（默认）时，组件输出与主题原版完全一致。
 -->
 <script lang="ts" setup>
 import type { PostFrontMatter } from 'valaxy'
@@ -12,7 +13,7 @@ import type { SakuraImageCardProps } from '../node_modules/valaxy-theme-sakura/t
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useThemeConfig } from '../node_modules/valaxy-theme-sakura/composables'
 
-defineProps<{
+const props = defineProps<{
   fm: PostFrontMatter
   imageCard?: SakuraImageCardProps
 }>()
@@ -21,6 +22,24 @@ const themeConfig = useThemeConfig()
 
 /** 开关：themeConfig.post.meta.wordCount，默认 false = 保持现状（不渲染该行） */
 const readingEnabled = computed(() => (themeConfig.value as any)?.post?.meta?.wordCount === true)
+
+/** 开关：themeConfig.post.meta.taxonomy，默认 false = 保持现状（不渲染该行） */
+const taxonomyEnabled = computed(() => (themeConfig.value as any)?.post?.meta?.taxonomy === true)
+
+/** 归一化为字符串数组：兼容 frontmatter 写成单个字符串的情况 */
+function toList(value: unknown): string[] {
+  if (typeof value === 'string')
+    return value.trim() ? [value] : []
+  if (Array.isArray(value))
+    return value.map(item => String(item ?? '').trim()).filter(Boolean)
+  return []
+}
+
+const categoryList = computed(() => toList(props.fm?.categories))
+const tagList = computed(() => toList(props.fm?.tags))
+
+/** 分类与标签都为空时不渲染整行，避免留空占位 */
+const showTaxonomy = computed(() => taxonomyEnabled.value && (categoryList.value.length > 0 || tagList.value.length > 0))
 
 /** 中文字符（含扩展 A、兼容区）按 1 字计 */
 const ZH_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g
@@ -117,6 +136,25 @@ onBeforeUnmount(() => stopWatching())
 <template>
   <SakuraPageHeader :fm class="sakura-post-header" :image-card="imageCard">
     <SakuraPostHeaderMeta :fm />
+
+    <p v-if="showTaxonomy" class="sakura-post-header-taxonomy">
+      <span v-if="categoryList.length" class="sakura-post-header-taxonomy__item">
+        分类：
+        <template v-for="(category, index) in categoryList" :key="`c-${category}`">
+          <span v-if="index" class="sakura-post-header-taxonomy__slash">/</span>
+          <RouterLink :to="{ path: '/categories', query: { category } }">{{ category }}</RouterLink>
+        </template>
+      </span>
+      <span v-if="categoryList.length && tagList.length" class="sakura-post-header-taxonomy__sep" aria-hidden="true">·</span>
+      <span v-if="tagList.length" class="sakura-post-header-taxonomy__item">
+        标签：
+        <template v-for="(tag, index) in tagList" :key="`t-${tag}`">
+          <span v-if="index" class="sakura-post-header-taxonomy__slash">·</span>
+          <RouterLink :to="{ path: '/tags/', query: { tag } }">{{ tag }}</RouterLink>
+        </template>
+      </span>
+    </p>
+
     <p v-if="showReading" class="sakura-post-header-reading">
       本文字数：{{ wordCount }}&nbsp;&nbsp;阅读时长：{{ readingMinutes }} 分钟
     </p>
@@ -140,6 +178,42 @@ onBeforeUnmount(() => stopWatching())
     font-size: 0.875rem;
     line-height: 1.6;
     opacity: 0.85;
+  }
+
+  /* 分类与标签同行展示：整行不换行，过长时自动折行 */
+  .sakura-post-header-taxonomy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.25rem;
+    align-items: center;
+    margin-top: 4px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    opacity: 0.85;
+  }
+
+  .sakura-post-header-taxonomy__item {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 0.15rem;
+  }
+
+  .sakura-post-header-taxonomy__sep,
+  .sakura-post-header-taxonomy__slash {
+    margin-inline: 0.25rem;
+    opacity: 0.7;
+  }
+
+  .sakura-post-header-taxonomy a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease-out;
+
+    &:hover {
+      color: var(--sakura-color-action, var(--va-c-primary));
+      text-decoration: underline;
+    }
   }
 }
 </style>

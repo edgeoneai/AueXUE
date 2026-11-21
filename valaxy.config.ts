@@ -108,7 +108,7 @@ export default defineValaxyConfig({
     notice: {
       rotateInterval: 5000,
       title: '公告栏',    //公告栏不支持在这里改了，集成到后台管理了
-      // 【A4 开关】公告行是否按 Markdown 解析并对裸域名自动生成链接；默认 false = 保持现状（纯文本、不自动链接）
+      // 公告行是否按 Markdown 解析并对裸域名自动生成链接；默认 false = 保持现状（纯文本、不自动链接）
       allowMarkdown: false,
       sections: [
         {
@@ -171,7 +171,7 @@ export default defineValaxyConfig({
     
     hero: {
       title: pick(gen.hero?.title, 'AIOVTUE'),   //首页中间的文字
-      // 【A3】motto 现已支持 string | string[]：写成数组则每次加载随机取一句；保持单个字符串时行为与现状完全一致
+      // motto 现已支持 string | string[]：写成数组则每次加载随机取一句；保持单个字符串时行为与现状完全一致
       motto: pick(gen.hero?.motto, '雨是神的烟花'),
       urls: Array.isArray(gen.hero?.urls) && gen.hero.urls.length ? gen.hero.urls : [
       '/hero/tt3.png', 
@@ -198,7 +198,7 @@ export default defineValaxyConfig({
     navigationMerge: true // 合并导航显示
   }, 
 
-  // 【A1 开关】文章页「本文字数 / 阅读时长」
+  // 文章页「本文字数 / 阅读时长」
   post: {
     meta: {
       // 是否在文章页显示本文字数与预计阅读时长；默认 false = 保持现状（不显示）
@@ -206,13 +206,13 @@ export default defineValaxyConfig({
     },
   },
 
-  // 【A5 开关】首页相关（移动端公告滚动条）
+  // 首页相关（移动端公告滚动条）
   home: {
     // 是否在移动端首页启用公告单行滚动 ticker；默认 false = 保持现状（不启用）
     mobileNoticeTicker: false,
   },
 
-  // 【A7 开关】友链相关
+  // 友链相关
   links: {
     // 友链随机排序开关（三态，默认「不设」）：
     //   不设（undefined）= 沿用页面 frontmatter 的 random 字段，即当前表现
@@ -233,7 +233,7 @@ export default defineValaxyConfig({
         title: 'Your Name',
       },
       icp: pick(gen.footer?.icp, '<a href="https://icp.gov.moe/?keyword=20260258" target="_blank" rel="noopener">萌ICP备20260258号</a>'),    //页脚网站备案
-      // 【A6 开关】页脚是否显示访客统计（本站访客 site.uv + 本站访问 site.pv）；默认 false = 保持现状（不显示）
+      // 页脚是否显示访客统计（本站访客 site.uv + 本站访问 site.pv）；默认 false = 保持现状（不显示）
       // 说明：Vercount 只提供 page_pv/page_uv/site_pv/site_uv，无按日维度；且 online 已被 patch 成常量，故不做「今日访客」与「在线人数」
       visitors: false,
     }, 
