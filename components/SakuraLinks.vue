@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useConfig } from 'valaxy'
 import { computed } from 'vue'
 
 interface FriendLinkItem {
@@ -12,10 +13,31 @@ interface FriendLinkItem {
   siteshot?: string
 }
 
+/** 分组独立布局：preview = 卡片预览图（现状默认）；simple = 横向简洁条（A7 新增） */
+type LinkGroupLayout = 'preview' | 'simple'
+
 interface FriendLinkGroup {
   name?: string
   desc?: string
+  /**
+   * 【A7】分组独立布局（可选字段）。
+   * 只认 'preview' | 'simple'；缺失或非法值一律回落全局 themeConfig.links.layout，
+   * 全局也没配则回落 'preview' —— 即老数据（无 layout 字段）渲染与改动前完全一致。
+   */
+  layout?: string
   links: FriendLinkItem[]
+}
+
+/** 【A7】themeConfig.links 相关开关，全部可选；不配置即保持现状 */
+interface LinksThemeConfig {
+  /** 全局默认分组布局，可选 'preview' | 'simple'；缺省 preview（现状） */
+  layout?: string
+  /**
+   * 【A7】分组随机三态开关：
+   * - true  → 强制随机；- false → 强制不随机（覆盖 frontmatter random）；
+   * - 未设置 → 沿用页面 frontmatter 的 random（即 props.random），完全保持现状
+   */
+  shuffleGroups?: boolean
 }
 
 const props = defineProps<{
@@ -60,14 +82,57 @@ function shuffleLinks<T>(list: T[]) {
   return [...list].sort(() => Math.random() - 0.5)
 }
 
+const config = useConfig()
+
+/** 【A7】读取 themeConfig.links；未配置（含 undefined）时用空对象，等价于全部走现状默认 */
+const linksConfig = computed<LinksThemeConfig>(() =>
+  (config.value?.themeConfig as { links?: LinksThemeConfig } | undefined)?.links ?? {},
+)
+
+/**
+ * 【A7】themeConfig.links.shuffleGroups 三态开关：
+ * - true  ：强制随机（即使页面 frontmatter 未写 random）
+ * - false ：强制不随机（覆盖 frontmatter 的 random: true）
+ * - 未设置：沿用原有 frontmatter random 控制路径（即 props.random），完全保持现状
+ */
+const shuffleGroups = computed(() => linksConfig.value.shuffleGroups)
+
+const randomEnabled = computed(() => {
+  const flag = shuffleGroups.value
+  if (flag === true)
+    return true
+  if (flag === false)
+    return false
+  return !!props.random
+})
+
+/** 一次取数：admin 编辑态永不随机；否则由 randomEnabled 的三态结果决定 */
+function pickLinks<T>(list: T[]) {
+  if (props.admin || !randomEnabled.value)
+    return [...list]
+  return shuffleLinks(list)
+}
+
+/** 只接受 'preview' | 'simple'，其余（含 undefined / 老数据非法值）返回 null 交回上层回落 */
+function parseGroupLayout(raw?: string): LinkGroupLayout | null {
+  return raw === 'preview' || raw === 'simple' ? raw : null
+}
+
+/** 分组布局解析顺序：group.layout → themeConfig.links.layout → 'preview'（现状默认） */
+function resolveGroupLayout(group?: FriendLinkGroup): LinkGroupLayout {
+  return parseGroupLayout(group?.layout)
+    ?? parseGroupLayout(linksConfig.value.layout)
+    ?? 'preview'
+}
+
 const groupList = computed(() => {
   if (Array.isArray(props.linkGroups) && props.linkGroups.length > 0) {
     return props.linkGroups.map((group) => {
-      const links = props.admin || !props.random ? [...group.links] : shuffleLinks(group.links)
       return {
         name: group.name || '',
         desc: group.desc || '',
-        links: links.map(normalizeLink),
+        layout: resolveGroupLayout(group),
+        links: pickLinks(group.links).map(normalizeLink),
       }
     })
   }
@@ -75,11 +140,11 @@ const groupList = computed(() => {
   if (typeof props.links === 'string' || !Array.isArray(props.links))
     return []
 
-  const links = props.admin || !props.random ? [...props.links] : shuffleLinks(props.links)
   return [{
     name: '',
     desc: '',
-    links: links.map(normalizeLink),
+    layout: resolveGroupLayout(),
+    links: pickLinks(props.links).map(normalizeLink),
   }]
 })
 
@@ -113,6 +178,7 @@ function onPreviewError(event: Event) {
       v-for="(group, groupIndex) in groupList"
       :key="groupIndex"
       class="links-preview-group"
+      :class="`links-preview-group--${group.layout}`"
     >
       <header
         v-if="group.name || admin"
@@ -159,22 +225,14 @@ function onPreviewError(event: Event) {
           <a
             v-if="!admin"
             class="links-preview-card"
+            :class="{ 'links-preview-card--simple': group.layout === 'simple' }"
             :href="link.url"
             :title="link.name"
             rel="friend noopener"
             target="_blank"
           >
-            <div class="links-preview-shot">
-              <img
-                :src="link.siteshot"
-                :alt="`${link.name} 站点预览`"
-                loading="lazy"
-                decoding="async"
-                @error="onPreviewError"
-              >
-            </div>
-
-            <div class="links-preview-meta">
+            <!-- 【A7】simple 分组布局：横向简洁条，hover 浮出站点截图；仅该分组单独生效 -->
+            <template v-if="group.layout === 'simple'">
               <img
                 class="links-preview-avatar"
                 :src="link.avatar"
@@ -191,27 +249,54 @@ function onPreviewError(event: Event) {
                   {{ link.desc }}
                 </div>
               </div>
-            </div>
+
+              <div class="links-preview-hover-shot" aria-hidden="true">
+                <img :src="link.siteshot" alt="" loading="lazy" decoding="async">
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="links-preview-shot">
+                <img
+                  :src="link.siteshot"
+                  :alt="`${link.name} 站点预览`"
+                  loading="lazy"
+                  decoding="async"
+                  @error="onPreviewError"
+                >
+              </div>
+
+              <div class="links-preview-meta">
+                <img
+                  class="links-preview-avatar"
+                  :src="link.avatar"
+                  :alt="link.name"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+                <div class="links-preview-text">
+                  <div class="links-preview-name">
+                    {{ link.blog }}
+                  </div>
+                  <div class="links-preview-desc">
+                    {{ link.desc }}
+                  </div>
+                </div>
+              </div>
+            </template>
           </a>
 
           <button
             v-else
             type="button"
             class="links-preview-card links-preview-card--admin"
+            :class="{ 'links-preview-card--simple': group.layout === 'simple' }"
             :title="`编辑 ${link.name}`"
             @click="onLinkClick(groupIndex, i)"
           >
-            <div class="links-preview-shot">
-              <img
-                :src="link.siteshot"
-                :alt="`${link.name} 站点预览`"
-                loading="lazy"
-                decoding="async"
-                @error="onPreviewError"
-              >
-            </div>
-
-            <div class="links-preview-meta">
+            <!-- 【A7】simple 分组布局（后台编辑态同样跟随分组 layout，保证所见即所得） -->
+            <template v-if="group.layout === 'simple'">
               <img
                 class="links-preview-avatar"
                 :src="link.avatar"
@@ -228,7 +313,38 @@ function onPreviewError(event: Event) {
                   {{ link.desc || '暂无描述' }}
                 </div>
               </div>
-            </div>
+            </template>
+
+            <template v-else>
+              <div class="links-preview-shot">
+                <img
+                  :src="link.siteshot"
+                  :alt="`${link.name} 站点预览`"
+                  loading="lazy"
+                  decoding="async"
+                  @error="onPreviewError"
+                >
+              </div>
+
+              <div class="links-preview-meta">
+                <img
+                  class="links-preview-avatar"
+                  :src="link.avatar"
+                  :alt="link.name"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+                <div class="links-preview-text">
+                  <div class="links-preview-name">
+                    {{ link.blog }}
+                  </div>
+                  <div class="links-preview-desc">
+                    {{ link.desc || '暂无描述' }}
+                  </div>
+                </div>
+              </div>
+            </template>
           </button>
         </li>
 
@@ -548,6 +664,136 @@ function onPreviewError(event: Event) {
   }
 }
 
+/* ===== 【A7】分组独立样式 · simple（横向简洁条）=====
+   作用域严格限定在 .links-preview-group--simple 之内；
+   默认的 preview 分组样式一行未改，因此老数据（分组无 layout 字段）渲染与改动前完全一致。 */
+.links-preview-group--simple {
+  --link-strip-min-width: 260px;
+
+  .links-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--link-strip-min-width)), 1fr));
+    gap: 14px 16px;
+  }
+
+  .links-preview-item {
+    width: 100%;
+    max-width: none;
+    flex: unset;
+  }
+
+  .links-preview-card--simple {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    aspect-ratio: auto;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--link-color, var(--sakura-color-primary, #fe9500)) 22%, transparent);
+    border-radius: 12px;
+    background: var(--sakura-card-bg, var(--sakura-post-card-bg, var(--va-c-bg, #fff)));
+    box-shadow: 0 2px 10px oklch(0% 0 0 / 4%);
+    overflow: visible;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+
+    &::after {
+      display: none;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--link-color, var(--sakura-color-primary, #fe9500)) 42%, transparent);
+      box-shadow: 0 8px 22px oklch(0% 0 0 / 10%);
+
+      .links-preview-name {
+        color: var(--link-color, var(--sakura-color-primary, #fe9500));
+      }
+
+      .links-preview-hover-shot {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+  }
+
+  .links-preview-avatar {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+  }
+
+  .links-preview-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .links-preview-name {
+    color: var(--sakura-color-text-deep, #333);
+  }
+
+  .links-preview-desc {
+    display: block;
+    color: var(--sakura-color-text-muted, #888);
+  }
+
+  /* hover 浮出的站点截图（simple 分组专属，preview 分组不使用该元素） */
+  .links-preview-hover-shot {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 12px);
+    z-index: 30;
+    width: min(280px, 88vw);
+    aspect-ratio: 16 / 10;
+    transform: translateX(-50%) translateY(6px) scale(0.96);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--va-c-bg-mute, oklch(94% 0 0));
+    box-shadow: 0 14px 32px oklch(0% 0 0 / 22%);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0.22s ease;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+  }
+
+  @media (max-width: 768px) {
+    --link-strip-min-width: 100%;
+
+    .links-preview-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .links-preview-item {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .links-preview-card--simple {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .links-preview-text {
+      min-width: 0;
+    }
+
+    .links-preview-hover-shot {
+      display: none !important;
+    }
+  }
+}
+
 :global(html.dark) {
   .links-preview-shot {
     background: oklch(28% 0.01 270);
@@ -560,6 +806,17 @@ function onPreviewError(event: Event) {
 
   .links-preview-name {
     color: var(--sakura-color-text, #eee);
+  }
+
+  /* 【A7】simple 分组暗色适配 */
+  .links-preview-group--simple .links-preview-card--simple {
+    border-color: color-mix(in srgb, var(--link-color, var(--sakura-color-primary, #fe9500)) 26%, transparent);
+    background: oklch(26% 0.01 270);
+    box-shadow: 0 2px 12px oklch(0% 0 0 / 22%);
+  }
+
+  .links-preview-group--simple .links-preview-hover-shot {
+    box-shadow: 0 16px 36px oklch(0% 0 0 / 45%);
   }
 }
 </style>
