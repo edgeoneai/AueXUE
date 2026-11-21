@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Pkg } from 'valaxy'
 import { useConfig } from 'valaxy'
+import { useAddonVercount } from 'valaxy-addon-vercount'
 import { isClient } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
@@ -8,6 +9,7 @@ interface FooterConfig {
   icp?: string
   powered?: boolean
   runtimeSince?: string
+  visitors?: boolean
 }
 
 interface RuntimeParts {
@@ -102,6 +104,61 @@ watch(() => footer.value.runtimeSince, startTimer)
 
 onMounted(startTimer)
 onUnmounted(stopTimer)
+
+/**
+ * 页脚访客统计：受 themeConfig.footer.visitors 控制，默认 false 不渲染。
+ *
+ * 【降级说明】无法提供「今日访客 / 今日访问」：
+ * 1. valaxy-addon-vercount（0.0.7）上游接口只返回 page_pv / page_uv / site_pv / site_uv，
+ *    没有「按日」维度，因此拿不到今日数据；
+ * 2. 项目的 patches/vercountComposable.ts 已移除 PeerJS 在线人数，online 恒为占位符 "-"，
+ *    因此也不能展示在线人数。
+ * 所以这里只展示「本站访客（site.uv）+ 本站访问（site.pv）」两项。
+ */
+const visitorsEnabled = computed(() => footer.value.visitors === true)
+
+// 注意：useAddonVercount() 内部会注册 router.beforeEach 并在 onMounted 时才发请求，
+// 整个组件只调用一次（多次调用会叠加路由守卫）；开关关闭时完全不调用，
+// 保证关闭状态下页脚行为与改动前完全一致（无额外请求、无守卫）。
+const vercount = visitorsEnabled.value ? useAddonVercount() : null
+
+/** 只接受非负数字或纯数字字符串；占位符 "-"、undefined、异常值一律视为无数据 */
+function toVisitorCount(value: number | string | undefined): number | null {
+  if (typeof value === 'number')
+    return Number.isFinite(value) && value >= 0 ? value : null
+
+  if (typeof value === 'string' && /^\d+$/.test(value.trim()))
+    return Number(value.trim())
+
+  return null
+}
+
+function formatVisitorCount(value: number) {
+  return value.toLocaleString('zh-CN')
+}
+
+const visitorItems = computed(() => {
+  if (!visitorsEnabled.value || !vercount)
+    return []
+
+  const site = vercount.site.value
+  const uv = toVisitorCount(site.uv)
+  const pv = toVisitorCount(site.pv)
+
+  // 接口失败 / 超时 / 返回异常时两个值都无效 → 整行静默隐藏
+  if (uv === null && pv === null)
+    return []
+
+  const items: Array<{ key: string, label: string, value: string }> = []
+
+  if (uv !== null)
+    items.push({ key: 'uv', label: '本站访客', value: formatVisitorCount(uv) })
+
+  if (pv !== null)
+    items.push({ key: 'pv', label: '本站访问', value: formatVisitorCount(pv) })
+
+  return items
+})
 </script>
 
 <template>
@@ -116,6 +173,14 @@ onUnmounted(stopTimer)
       <span class="sakura-footer-runtime__num">{{ runtime.hours }}</span>小时
       <span class="sakura-footer-runtime__num">{{ runtime.minutes }}</span>分钟
       <span class="sakura-footer-runtime__num">{{ runtime.seconds }}</span>秒
+    </p>
+
+    <p v-if="visitorItems.length" class="sakura-footer-visitors">
+      <template v-for="(item, index) in visitorItems" :key="item.key">
+        <span v-if="index" class="sakura-footer-visitors__sep" aria-hidden="true">·</span>
+        <span class="sakura-footer-visitors__label">{{ item.label }}</span>
+        <span class="sakura-footer-visitors__num">{{ item.value }}</span>
+      </template>
     </p>
 
     <SakuraPowered v-if="footer.powered" />
@@ -137,5 +202,29 @@ onUnmounted(stopTimer)
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--sakura-color-primary, #fe9500);
+}
+
+.sakura-footer-visitors {
+  margin: 0;
+  padding: 4px 0 8px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--va-c-text-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.sakura-footer-visitors__label {
+  margin-right: 4px;
+}
+
+.sakura-footer-visitors__num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--sakura-color-primary, #fe9500);
+}
+
+.sakura-footer-visitors__sep {
+  margin: 0 8px;
+  opacity: 0.6;
 }
 </style>
