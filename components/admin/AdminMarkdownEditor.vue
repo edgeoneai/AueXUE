@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { useValaxyDark } from 'valaxy'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 
@@ -17,6 +18,14 @@ const emit = defineEmits<{
 }>()
 
 const VDITOR_CDN = 'https://cdn.jsdelivr.net/npm/vditor@3.11.2'
+
+/**
+ * 编辑器视图模式（可由工具栏 edit-mode 按钮切换）：
+ * ir = 即时渲染（默认）、wysiwyg = 所见即所得、sv = 分屏预览、edit = 源码
+ */
+const editorMode = ref<'ir' | 'wysiwyg' | 'sv' | 'edit'>('ir')
+/** 跟随前台深浅色，切换 Vditor 自带主题 */
+const { isDark } = useValaxyDark()
 
 const containerRef = ref<HTMLElement>()
 const editorRef = shallowRef<Vditor>()
@@ -56,7 +65,10 @@ function focusCodeIfInInfo(vditor: Vditor) {
 }
 
 function bindCodeBlockLangSuppress(vditor: Vditor) {
-  const element = vditor.vditor.ir.element
+  // 非 IR 模式（源码 / 分屏 / 所见即所得）下没有 ir.element，直接跳过
+  const element = vditor.vditor?.ir?.element
+  if (!element)
+    return
   vditor.vditor.hint.recentLanguage = ''
   suppressCodeLangHint = () => focusCodeIfInInfo(vditor)
 
@@ -73,7 +85,10 @@ function isCodeBlockComplete(node: Element) {
 }
 
 function bindCodeBlockPreviewSync(vditor: Vditor) {
-  irElement = vditor.vditor.ir.element
+  const element = vditor.vditor?.ir?.element
+  if (!element)
+    return
+  irElement = element
   syncCodeBlockPreview = () => {
     irElement?.querySelectorAll('[data-type="code-block"]').forEach((node) => {
       const preview = node.querySelector('.vditor-ir__preview') as HTMLElement | null
@@ -142,9 +157,11 @@ onMounted(() => {
 
   const instance = new Vditor(containerRef.value, {
     cdn: VDITOR_CDN,
-    mode: 'ir',
+    // 默认即时渲染（ir）；工具栏提供「编辑 / 即时渲染 / 分屏预览 / 所见即所得」切换
+    mode: editorMode.value,
     lang: 'zh_CN',
-    theme: 'classic',
+    // classic 为浅色，dark 随后台深浅色
+    theme: isDark.value ? 'dark' : 'classic',
     placeholder: props.placeholder,
     minHeight: props.minHeight,
     cache: { enable: false },
@@ -154,6 +171,7 @@ onMounted(() => {
       'line', 'quote', 'list', 'ordered-list', 'check', 'outdent', 'indent', '|',
       'code', 'link', 'table', '|',
       'undo', 'redo', '|',
+      'edit-mode', '|',
       'fullscreen',
     ],
     outline: { enable: false },
@@ -206,6 +224,19 @@ onMounted(() => {
   })
 
   pendingInstance = instance
+})
+
+// 深色切换：Vditor 需要显式 setTheme；同时把模式变化同步给实例
+watch(isDark, (dark) => {
+  const vditor = editorRef.value
+  if (!vditor)
+    return
+  try {
+    vditor.setTheme(dark ? 'dark' : 'classic', dark ? 'dark' : 'light', dark ? 'dark' : 'classic')
+  }
+  catch {
+    // 忽略主题切换期间的瞬时错误
+  }
 })
 
 watch([() => props.modelValue, ready], ([value, isReady]) => {
