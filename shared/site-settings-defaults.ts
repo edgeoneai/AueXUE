@@ -123,6 +123,11 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     vmid: '',
     quote: '生命不息，追番不止！',
   },
+  weekly: {
+    enable: true,
+    title: '周刊',
+    category: '周刊',
+  },
   navigationVideos: [
     { url: '/img/1.mp4', weight: 1 },
     { url: '/img/2.mp4', weight: 2 },

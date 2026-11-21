@@ -449,6 +449,26 @@ const socialCount = computed(() => form.value.social.length)
       </div>
     </section>
 
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">周刊页</h2>
+      <p class="site-settings__hint">
+        周刊内容是普通文章，把文章分类设为下面的「归入分类」即可出现在周刊页。
+      </p>
+      <div class="site-settings__checks">
+        <label><input v-model="form.weekly.enable" type="checkbox"> 启用周刊页</label>
+      </div>
+      <div class="site-settings__grid">
+        <label class="site-settings__field">
+          <span>页面标题</span>
+          <input v-model="form.weekly.title" type="text" placeholder="周刊">
+        </label>
+        <label class="site-settings__field">
+          <span>归入分类</span>
+          <input v-model="form.weekly.category" type="text" placeholder="周刊">
+        </label>
+      </div>
+    </section>
+
     <div class="site-settings__actions">
       <button type="button" class="site-settings__btn site-settings__btn--ghost" :disabled="saving" @click="handleReset">
         恢复默认

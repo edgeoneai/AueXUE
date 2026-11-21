@@ -6,6 +6,7 @@ import type {
   NavigationVideo,
   PersonalizeSettings,
   ServiceSettings,
+  WeeklySettings,
   SiteSettings,
   SiteSocialLink,
   SponsorMethod,
@@ -153,6 +154,14 @@ function normalizeBangumi(raw: Record<string, unknown>, fallback: BangumiSetting
   }
 }
 
+function normalizeWeekly(raw: Record<string, unknown>, fallback: WeeklySettings): WeeklySettings {
+  return {
+    enable: bool(raw.enable, fallback.enable),
+    title: str(raw.title, fallback.title).trim() || fallback.title,
+    category: str(raw.category, fallback.category).trim() || fallback.category,
+  }
+}
+
 function normalizeService(raw: Record<string, unknown>, fallback: ServiceSettings): ServiceSettings {
   return {
     twikooEnvId: str(raw.twikooEnvId, fallback.twikooEnvId),
@@ -221,6 +230,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const navbarRaw = (raw.navbar && typeof raw.navbar === 'object' ? raw.navbar : {}) as Record<string, unknown>
   const pageStylesRaw = (raw.pageStyles && typeof raw.pageStyles === 'object' ? raw.pageStyles : {}) as Record<string, unknown>
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
+  const weeklyRaw = (raw.weekly && typeof raw.weekly === 'object' ? raw.weekly : {}) as Record<string, unknown>
   const bangumiRaw = (raw.bangumi && typeof raw.bangumi === 'object' ? raw.bangumi : {}) as Record<string, unknown>
   const serviceRaw = (raw.service && typeof raw.service === 'object' ? raw.service : {}) as Record<string, unknown>
   const interactionRaw = (raw.interaction && typeof raw.interaction === 'object' ? raw.interaction : {}) as Record<string, unknown>
@@ -258,6 +268,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
     personalize: normalizePersonalize(personalizeRaw, fallback.personalize),
     navigationVideos: navigationVideos(raw.navigationVideos, fallback.navigationVideos),
     bangumi: normalizeBangumi(bangumiRaw, fallback.bangumi),
+    weekly: normalizeWeekly(weeklyRaw, fallback.weekly),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
     pageStyles: {
       categories: str(pageStylesRaw.categories, fallback.pageStyles.categories),

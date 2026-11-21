@@ -9,10 +9,12 @@ import { useAllMergedPosts } from '../composables/useMergedPostList'
 import { loadDynamicPosts, useDynamicPostsState } from '../composables/useDynamicPosts'
 
 interface Props {
+  /** 版头标题 */
+  title?: string
   /** 用于识别周刊的分类名，默认「周刊」 */
   category?: string
 }
-const props = withDefaults(defineProps<Props>(), { category: '周刊' })
+const props = withDefaults(defineProps<Props>(), { title: '周刊', category: '周刊' })
 
 const posts = useAllMergedPosts()
 const { loaded } = useDynamicPostsState()
@@ -71,7 +73,7 @@ const latestDate = computed(() => issues.value[0]?.date || '')
   <div class="weekly-board">
     <header class="weekly-masthead">
       <div class="weekly-masthead__rule" aria-hidden="true" />
-      <h2 class="weekly-masthead__title">周刊</h2>
+      <h2 class="weekly-masthead__title">{{ title }}</h2>
       <div v-if="issues.length" class="weekly-masthead__meta">
         <span>共 {{ issues.length }} 期</span>
         <span v-if="latestDate">最新 {{ latestDate }}</span>

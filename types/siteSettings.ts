@@ -79,6 +79,16 @@ export interface ServiceSettings {
   hitokotoApi: string
 }
 
+/** 周刊页 */
+export interface WeeklySettings {
+  /** 是否在导航中显示周刊入口 */
+  enable: boolean
+  /** 页面标题 */
+  title: string
+  /** 归入周刊的文章分类名 */
+  category: string
+}
+
 /** 追番页（Bilibili 追番列表，构建时拉取） */
 export interface BangumiSettings {
   /** 是否启用追番页与构建时数据拉取 */
@@ -184,6 +194,8 @@ export interface SiteSettings {
   navigationVideos: NavigationVideo[]
   /** 追番页 */
   bangumi: BangumiSettings
+  /** 周刊页 */
+  weekly: WeeklySettings
   /** 各列表页样式 */
   pageStyles: {
     categories: string
