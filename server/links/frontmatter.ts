@@ -15,11 +15,18 @@ function normalizeLinkItem(raw: Record<string, unknown>): FriendLinkItem {
   }
 }
 
+/** 分组布局只接受这两个值，其他（含缺失）一律当作未设置，由前端回落全局配置 */
+function normalizeGroupLayout(raw: unknown): 'preview' | 'simple' | undefined {
+  return raw === 'preview' || raw === 'simple' ? raw : undefined
+}
+
 function normalizeLinkGroup(raw: Record<string, unknown>): FriendLinkGroup {
   const linksRaw = Array.isArray(raw.links) ? raw.links : []
+  const layout = normalizeGroupLayout(raw.layout)
   return {
     name: raw.name ? String(raw.name) : '',
     desc: raw.desc ? String(raw.desc) : '',
+    ...(layout ? { layout } : {}),
     links: linksRaw
       .filter(item => item && typeof item === 'object')
       .map(item => normalizeLinkItem(item as Record<string, unknown>))
@@ -162,6 +169,10 @@ export function serializeLinksFrontmatter(frontmatter: LinksFrontmatter, content
       entry.name = group.name.trim()
     if (group.desc?.trim())
       entry.desc = group.desc.trim()
+    // 分组独立布局：只有显式设置时才写回 YAML，未设置的分组保持老数据结构不变
+    const layout = normalizeGroupLayout(group.layout)
+    if (layout)
+      entry.layout = layout
     entry.links = (group.links || []).map(serializeLinkItem)
     return entry
   })

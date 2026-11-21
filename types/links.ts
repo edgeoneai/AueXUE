@@ -12,6 +12,8 @@ export interface FriendLinkItem {
 export interface FriendLinkGroup {
   name?: string
   desc?: string
+  /** 该分组独立布局：preview = 卡片预览图；simple = 横向简洁条。缺省时回落全局 themeConfig.links.layout */
+  layout?: 'preview' | 'simple'
   links: FriendLinkItem[]
 }
 

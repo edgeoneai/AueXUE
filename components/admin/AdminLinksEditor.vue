@@ -47,7 +47,7 @@ const noticeDialogOpen = ref(false)
 const editingGroupIndex = ref(-1)
 const editingLinkIndex = ref(-1)
 const linkDraft = reactive(createEmptyLink())
-const groupDraft = reactive({ name: '', desc: '' })
+const groupDraft = reactive<{ name: string, desc: string, layout: '' | 'preview' | 'simple' }>({ name: '', desc: '', layout: '' })
 
 const linkCount = computed(() =>
   groups.value.reduce((sum, group) => sum + (group.links?.length || 0), 0),
@@ -61,6 +61,7 @@ function cloneGroups(input: FriendLinkGroup[]) {
   return input.map(group => ({
     name: group.name || '',
     desc: group.desc || '',
+    ...(group.layout ? { layout: group.layout } : {}),
     links: (group.links || []).map(link => ({ ...link })),
   }))
 }
@@ -99,6 +100,7 @@ function resetLinkDraft(link?: FriendLinkItem) {
 function resetGroupDraft(group?: FriendLinkGroup) {
   groupDraft.name = group?.name || ''
   groupDraft.desc = group?.desc || ''
+  groupDraft.layout = group?.layout === 'preview' || group?.layout === 'simple' ? group.layout : ''
 }
 
 function openLinkDialog(groupIndex: number, linkIndex = -1) {
@@ -186,6 +188,9 @@ function saveGroupDraft() {
 
   groups.value[groupIndex].name = groupDraft.name.trim()
   groups.value[groupIndex].desc = groupDraft.desc.trim()
+  // 空字符串表示「跟随全局」：置为 undefined，序列化时自动省略，回到老数据结构
+  groups.value[groupIndex].layout
+    = groupDraft.layout === 'preview' || groupDraft.layout === 'simple' ? groupDraft.layout : undefined
   closeGroupDialog()
   persistChanges()
 }
@@ -224,6 +229,7 @@ function buildSource() {
     linkGroups: groups.value.map(group => ({
       name: group.name?.trim() || '',
       desc: group.desc?.trim() || '',
+      layout: group.layout === 'preview' || group.layout === 'simple' ? group.layout : undefined,
       links: group.links
         .map(link => ({
           url: link.url.trim(),
@@ -416,6 +422,14 @@ defineExpose({
             <label class="admin-links-dialog__field admin-links-dialog__field--wide">
               <span>分组描述</span>
               <input v-model="groupDraft.desc" type="text" placeholder="可选描述">
+            </label>
+            <label class="admin-links-dialog__field admin-links-dialog__field--wide">
+              <span>分组样式</span>
+              <select v-model="groupDraft.layout">
+                <option value="">跟随全局设置</option>
+                <option value="preview">卡片预览（带截图）</option>
+                <option value="simple">简洁条（头像 + 简介）</option>
+              </select>
             </label>
             <div class="admin-links-dialog__move">
               <button type="button" class="admin-links-dialog__btn admin-links-dialog__btn--ghost" :disabled="editingGroupIndex <= 0" @click="moveGroup(-1)">
