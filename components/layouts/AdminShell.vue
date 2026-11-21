@@ -94,24 +94,6 @@ const backLink = computed(() => ({
   icon: 'i-mdi-home-export-outline',
 }))
 
-function isNavActive(key: string) {
-  if (key === 'posts')
-    return isPostsActive.value
-  if (key === 'links')
-    return isLinksActive.value
-  if (key === 'files')
-    return isFilesActive.value
-  if (key === 'about')
-    return isAboutActive.value
-  if (key === 'gallery')
-    return isGalleryActive.value
-  if (key === 'notice')
-    return isNoticeActive.value
-  if (key === 'settings')
-    return isSettingsActive.value
-  return false
-}
-
 
 function closeSidebar() {
   sidebarOpen.value = false
