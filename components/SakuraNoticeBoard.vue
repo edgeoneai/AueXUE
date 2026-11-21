@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useConfig } from 'valaxy'
+import MarkdownIt from 'markdown-it'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { ResolvedNoticeLine } from '../utils/noticeLines'
 import { useAllMergedPosts } from '../composables/useMergedPostList'
 import { useDynamicNotice } from '../composables/useDynamicNotice'
 import { resolveNoticeSections } from '../utils/noticeLines'
@@ -20,6 +22,7 @@ const themeConfig = computed(() => config.value.themeConfig as {
   notice?: {
     rotateInterval?: number
     title?: string
+    allowMarkdown?: boolean
     sections?: Array<{
       label: string
       lines: Array<string | { text: string, url?: string }>
@@ -44,6 +47,150 @@ const noticeSections = computed(() => {
   return resolveNoticeSections(sections)
 })
 const hasPosts = computed(() => posts.value.length > 0)
+
+/**
+ * 公告行 Markdown / 裸链接开关（themeConfig.notice.allowMarkdown，默认 false = 保持现状）。
+ * 关闭时下面所有函数都不会被走到，公告栏输出与改动前完全一致。
+ */
+const allowMarkdown = computed(() => themeConfig.value.notice?.allowMarkdown === true)
+
+/** 行内 Markdown 标记：与上游 aiovtue notice-board-md.html 的 findRE 保持一致 */
+const NOTICE_INLINE_MARKDOWN_MARKERS_RE = /[[\]!*_`~]/
+/** 整行裸域名（可带路径），用于自动补 https 变成链接 */
+const NOTICE_BARE_DOMAIN_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+(?:\/\S*)?$/i
+/** v-html 白名单：只允许这些标签，其余标签一律转义成文本 */
+const NOTICE_ALLOWED_TAGS = new Set(['a', 'strong', 'em', 'code', 'br'])
+/** 行内标签匹配（属性值里的 > 不会被误判为标签结束） */
+const NOTICE_TAG_RE = /<\/?([a-zA-Z][a-zA-Z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
+
+/** 只为行内片段服务：不解析块级语法、不生成 <p>，避免撑破公告栏布局 */
+const noticeMarkdown = new MarkdownIt({ html: false, linkify: false, breaks: false })
+
+function escapeNoticeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/** 只放行 http(s)/mailto/站内绝对路径/锚点，其余（javascript:、data: 等）一律拒绝 */
+function isSafeNoticeHref(href: string) {
+  const value = href.trim()
+  if (!value)
+    return false
+  if (value.startsWith('/') || value.startsWith('#'))
+    return true
+  return /^(?:https?:|mailto:)/i.test(value)
+}
+
+function extractNoticeHref(attrs: string) {
+  const matched = /(?:^|\s)href\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i.exec(attrs)
+  if (!matched)
+    return ''
+  return (matched[1] ?? matched[2] ?? matched[3] ?? '').trim()
+}
+
+/**
+ * v-html 安全处理：白名单外的标签整体转义为文本；
+ * <a> 只保留安全 href，外链自动补 rel/target；<br> 归一化成 <br>。
+ */
+function sanitizeNoticeInlineHtml(html: string) {
+  if (!html)
+    return ''
+
+  let result = ''
+  let lastIndex = 0
+  NOTICE_TAG_RE.lastIndex = 0
+
+  let match = NOTICE_TAG_RE.exec(html)
+  while (match) {
+    const raw = match[0]
+    const name = match[1].toLowerCase()
+    const attrs = match[2] || ''
+    const isClosing = raw.startsWith('</')
+
+    // 标签之间的文本由 markdown-it 转义过，原样保留
+    result += html.slice(lastIndex, match.index)
+    lastIndex = match.index + raw.length
+
+    if (!NOTICE_ALLOWED_TAGS.has(name)) {
+      result += escapeNoticeHtml(raw)
+    }
+    else if (isClosing) {
+      if (name !== 'br')
+        result += `</${name}>`
+    }
+    else if (name === 'br') {
+      result += '<br>'
+    }
+    else if (name === 'a') {
+      const href = extractNoticeHref(attrs)
+      if (!isSafeNoticeHref(href)) {
+        result += escapeNoticeHtml(raw)
+      }
+      else {
+        const external = /^https?:/i.test(href)
+        const rel = external ? ' target="_blank" rel="noopener noreferrer"' : ''
+        result += `<a href="${escapeNoticeHtml(href)}"${rel}>`
+      }
+    }
+    else {
+      result += `<${name}>`
+    }
+
+    match = NOTICE_TAG_RE.exec(html)
+  }
+
+  result += html.slice(lastIndex)
+  return result
+}
+
+/** Markdown 链接目标里的括号/空格会让目标被截断，这里做最小转义 */
+function escapeNoticeLinkTarget(target: string) {
+  return target.replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/ /g, '%20')
+}
+
+/**
+ * 渲染一条纯文本公告行。
+ * - 含行内 Markdown 标记：交给 markdown-it 渲染行内 HTML
+ * - 不含标记但整行是 http(s) URL / 裸域名：先转成 Markdown 链接再渲染
+ * - 其余纯文本行返回 ''，交给模板原有分支渲染（输出与改动前一致）
+ * 返回的是已过白名单的安全 HTML；空串表示「不需要特殊渲染」。
+ */
+function renderNoticeLine(text: string) {
+  const value = String(text || '').trim()
+  if (!value)
+    return ''
+
+  const hasMarkdown = NOTICE_INLINE_MARKDOWN_MARKERS_RE.test(value)
+  let source = value
+
+  if (!hasMarkdown) {
+    if (/^https?:\/\//i.test(value))
+      source = `[${value}](${escapeNoticeLinkTarget(value)})`
+    else if (NOTICE_BARE_DOMAIN_RE.test(value))
+      source = `[${value}](https://${escapeNoticeLinkTarget(value)})`
+    else
+      return ''
+  }
+
+  return sanitizeNoticeInlineHtml(noticeMarkdown.renderInline(source)).trim()
+}
+
+/**
+ * 公告行的 Markdown 渲染结果。
+ * 只处理「没有 url 的纯文本行」：既覆盖配置文件里的字符串行，
+ * 也覆盖后台公告经 server/notice/normalize.ts 归一化后的 { text } 行
+ * （后台保存的行一律是对象，若只认字符串行，开关在线上将永不生效）。
+ * 带 url 的对象行仍旧走模板里原有的 <a> 分支，一行未改。
+ */
+function noticeLineHtml(line: ResolvedNoticeLine) {
+  if (!allowMarkdown.value || line.url)
+    return ''
+  return renderNoticeLine(line.text)
+}
 
 const currentIndex = ref(0)
 const isArticleHovered = ref(false)
@@ -206,6 +353,11 @@ onUnmounted(() => {
           >
             {{ line.text }}
           </a>
+          <span
+            v-else-if="noticeLineHtml(line)"
+            class="notice-board-wrap__line-md"
+            v-html="noticeLineHtml(line)"
+          />
           <template v-else>
             {{ line.text }}
           </template>
@@ -441,6 +593,33 @@ onUnmounted(() => {
     &:hover {
       color: var(--sakura-color-primary);
       text-decoration: underline;
+    }
+  }
+
+  /* v-html 渲染出的行内 Markdown 内容不带 scoped 属性，需用 :deep 命中 */
+  &__line-md {
+    display: inline;
+
+    :deep(a) {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: var(--sakura-color-primary);
+        text-decoration: underline;
+      }
+    }
+
+    :deep(strong) {
+      font-weight: 800;
+    }
+
+    :deep(code) {
+      padding: 0 0.25em;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--sakura-color-primary) 14%, transparent);
+      font-size: 0.95em;
     }
   }
 
