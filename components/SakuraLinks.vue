@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useConfig } from 'valaxy'
 import { computed } from 'vue'
 
 interface FriendLinkItem {
@@ -21,23 +20,11 @@ interface FriendLinkGroup {
   desc?: string
   /**
    * 分组独立布局（可选字段）。
-   * 只认 'preview' | 'simple'；缺失或非法值一律回落全局 themeConfig.links.layout，
-   * 全局也没配则回落 'preview' —— 即老数据（无 layout 字段）渲染与改动前完全一致。
+   * 只认 'preview' | 'simple'；缺失或非法值一律回落 'preview'
+   * —— 即老数据（无 layout 字段）渲染与改动前完全一致。
    */
   layout?: string
   links: FriendLinkItem[]
-}
-
-/** themeConfig.links 相关开关，全部可选；不配置即保持现状 */
-interface LinksThemeConfig {
-  /** 全局默认分组布局，可选 'preview' | 'simple'；缺省 preview（现状） */
-  layout?: string
-  /**
-   * 分组随机三态开关：
-   * - true  → 强制随机；- false → 强制不随机（覆盖 frontmatter random）；
-   * - 未设置 → 沿用页面 frontmatter 的 random（即 props.random），完全保持现状
-   */
-  shuffleGroups?: boolean
 }
 
 const props = defineProps<{
@@ -82,31 +69,13 @@ function shuffleLinks<T>(list: T[]) {
   return [...list].sort(() => Math.random() - 0.5)
 }
 
-const config = useConfig()
-
-/** 读取 themeConfig.links；未配置（含 undefined）时用空对象，等价于全部走现状默认 */
-const linksConfig = computed<LinksThemeConfig>(() =>
-  (config.value?.themeConfig as { links?: LinksThemeConfig } | undefined)?.links ?? {},
-)
-
 /**
- * themeConfig.links.shuffleGroups 三态开关：
- * - true  ：强制随机（即使页面 frontmatter 未写 random）
- * - false ：强制不随机（覆盖 frontmatter 的 random: true）
- * - 未设置：沿用原有 frontmatter random 控制路径（即 props.random），完全保持现状
+ * 是否随机排序：由后台「友链管理」的「随机排序友链」开关驱动，
+ * 它写入页面 frontmatter 的 random，经 SakuraLinksLayout 以 props.random 传入。
+ * 后台编辑态（admin）永远不随机，避免编辑时列表跳动。
  */
-const shuffleGroups = computed(() => linksConfig.value.shuffleGroups)
+const randomEnabled = computed(() => !!props.random)
 
-const randomEnabled = computed(() => {
-  const flag = shuffleGroups.value
-  if (flag === true)
-    return true
-  if (flag === false)
-    return false
-  return !!props.random
-})
-
-/** 一次取数：admin 编辑态永不随机；否则由 randomEnabled 的三态结果决定 */
 function pickLinks<T>(list: T[]) {
   if (props.admin || !randomEnabled.value)
     return [...list]
@@ -118,11 +87,9 @@ function parseGroupLayout(raw?: string): LinkGroupLayout | null {
   return raw === 'preview' || raw === 'simple' ? raw : null
 }
 
-/** 分组布局解析顺序：group.layout → themeConfig.links.layout → 'preview'（现状默认） */
+/** 分组布局解析顺序：group.layout → 'preview'（现状默认）。后台可按分组单独设置。 */
 function resolveGroupLayout(group?: FriendLinkGroup): LinkGroupLayout {
-  return parseGroupLayout(group?.layout)
-    ?? parseGroupLayout(linksConfig.value.layout)
-    ?? 'preview'
+  return parseGroupLayout(group?.layout) ?? 'preview'
 }
 
 const groupList = computed(() => {

@@ -105,44 +105,18 @@ export default defineValaxyConfig({
   theme: 'sakura',  //主题不支持切换哦
 
   themeConfig: {
-    notice: {
-      rotateInterval: 5000,
-      title: '公告栏',    //公告栏不支持在这里改了，集成到后台管理了
-      // 公告行是否按 Markdown 解析并对裸域名自动生成链接；默认 false = 保持现状（纯文本、不自动链接）
-      allowMarkdown: false,
-      sections: [
-        {
-          label: '--- 主域名 ---',
-          lines: [
-            'daily.yybb.us',
-            'daily.20030327.xyz',
-            // 也支持对象：{ text: '显示文字', url: 'https://example.com' }
-          ],
-        },
-        {
-          label: '--- 备用域名 ---',
-          lines: [
-            '这里改没有用',
-          ],
-        },
-      ],
-    },
+    // 公告栏（标题、分组、每行内容、轮播间隔、Markdown 开关）全部由后台「公告管理」维护，
+    // 数据存 D1 的 notice_board 表，此处不再保留配置文件兜底。
     // 导航页「随机网站跳转」抽卡视频：weight 越大越容易抽到
+    // 导航页抽卡视频：优先取后台「站点设置 → 导航页」
     navigation: {
-      randomDrawVideos: [
-        {
-          url: '/img/1.mp4',
-          weight: 1,
-        },
-        {
-          url: '/img/2.mp4',
-          weight: 2,
-        },
-        {
-          url: '/img/3.mp4',
-          weight: 3,
-        },
-      ],
+      randomDrawVideos: Array.isArray(gen.navigationVideos) && gen.navigationVideos.length
+        ? gen.navigationVideos
+        : [
+            { url: '/img/1.mp4', weight: 1 },
+            { url: '/img/2.mp4', weight: 2 },
+            { url: '/img/3.mp4', weight: 3 },
+          ],
     },
     ui: {
       primary: themePrimary,
@@ -171,8 +145,10 @@ export default defineValaxyConfig({
     
     hero: {
       title: pick(gen.hero?.title, 'AIOVTUE'),   //首页中间的文字
-      // motto 现已支持 string | string[]：写成数组则每次加载随机取一句；保持单个字符串时行为与现状完全一致
-      motto: pick(gen.hero?.motto, '雨是神的烟花'),
+      // 一言/格言：数组形式，每次加载随机取一句；只有一句时行为与单个字符串完全一致
+      motto: Array.isArray(gen.hero?.motto) && gen.hero.motto.length
+        ? gen.hero.motto
+        : ['雨是神的烟花'],
       urls: Array.isArray(gen.hero?.urls) && gen.hero.urls.length ? gen.hero.urls : [
       '/hero/tt3.png', 
       '/hero/hero-1.jpg',
@@ -198,32 +174,21 @@ export default defineValaxyConfig({
     navigationMerge: true // 合并导航显示
   }, 
 
-  // 文章页「本文字数 / 阅读时长」「分类 · 标签」
+  // 文章页显示项（字数/阅读时长、分类与标签）：优先取后台「站点设置 → 个性化」
   post: {
     meta: {
-      // 是否在文章页显示本文字数与预计阅读时长；默认 false = 保持现状（不显示）
-      wordCount: false,
-      // 是否在文章页头以同一行显示「分类：… · 标签：…」；默认 false = 保持现状（不显示）
-      taxonomy: false,
+      wordCount: gen.personalize?.wordCount ?? false,
+      taxonomy: gen.personalize?.taxonomy ?? false,
     },
   },
 
-  // 首页相关（移动端公告滚动条）
+  // 移动端首页公告滚动条：优先取后台「站点设置 → 滚动与交互」
   home: {
-    // 是否在移动端首页启用公告单行滚动 ticker；默认 false = 保持现状（不启用）
-    mobileNoticeTicker: false,
+    mobileNoticeTicker: gen.interaction?.mobileNoticeTicker ?? false,
   },
 
-  // 友链相关
-  links: {
-    // 友链随机排序开关（三态，默认「不设」）：
-    //   不设（undefined）= 沿用页面 frontmatter 的 random 字段，即当前表现
-    //   显式 true        = 强制开启随机
-    //   显式 false       = 强制关闭，覆盖 frontmatter
-    // 之所以默认不设：content/links/index.md 目前没有 random 字段（当前即不随机），
-    // 但若在此写死 false，今后用 frontmatter.random: true 开启随机的路径会失效。
-    // shuffleGroups: true,
-  },
+  // 友链相关（随机排序、分组布局）全部由后台「友链管理」维护，数据存 R2 的 links frontmatter，
+  // 此处不再保留配置文件开关。
 
    footer: {
       powered: false,
@@ -289,19 +254,21 @@ export default defineValaxyConfig({
     },
   },
 
+  // 评论与第三方服务接入：优先取后台「站点设置 → 评论与接入」，没有则回落下面的默认值。
+  // 这些是 addons，构建期编译进产物，后台改完需要重新构建部署才生效。
   addons: [
     addonTwikoo({
-      envId: 'https://your-twikoo/',  //写你自己的twikoo评论地址
+      envId: pick(gen.service?.twikooEnvId, 'https://your-twikoo/'),  //twikoo评论地址
     }),
     addonVercount({
-      api: 'cn'   //访问统计
+      api: pick(gen.service?.vercountApi, 'cn')   //访问统计
     }),
     addonMeting({
       global: false,
       props: {
-        id: '2489775340',    //原番剧页面id，该版本未配置
-        server: 'netease',
-        type: 'playlist',
+        id: pick(gen.service?.metingId, '2489775340'),    //歌单id
+        server: pick(gen.service?.metingServer, 'netease'),
+        type: pick(gen.service?.metingType, 'playlist'),
       },
       options: {
         autoHidden: true,
@@ -311,7 +278,7 @@ export default defineValaxyConfig({
     }),
     // addonBackgrounds({}),
     addonHitokoto({
-      api: 'intl',
+      api: pick(gen.service?.hitokotoApi, 'intl'),
     }),
   ],
 })
