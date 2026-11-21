@@ -19,7 +19,7 @@ watch(pageIndex, (value) => {
 
 <template>
   <SakuraHomeLayout>
-    <!-- A5：移动端公告单行滚动 ticker（受 themeConfig.home.mobileNoticeTicker 控制，默认不渲染） -->
+    <!-- 移动端公告单行滚动 ticker（受 themeConfig.home.mobileNoticeTicker 控制，默认不渲染） -->
     <template #notice-board>
       <SakuraNoticeBoard />
       <SakuraMobileNoticeTicker />

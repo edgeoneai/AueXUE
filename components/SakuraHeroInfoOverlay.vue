@@ -1,5 +1,5 @@
 <!--
-  【A3 本地覆盖】本文件覆盖 valaxy-theme-sakura@0.10.2 的同名组件
+  本文件覆盖 valaxy-theme-sakura@0.10.2 的同名组件
   node_modules/valaxy-theme-sakura/components/SakuraHeroInfoOverlay.vue
   （v0.10.2 原版 136 行）。项目 components/ 优先级高于主题 components/，
   因此主题升级时若该组件有变化，需要重新比对一次。

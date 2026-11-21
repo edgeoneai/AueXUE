@@ -13,14 +13,14 @@ interface FriendLinkItem {
   siteshot?: string
 }
 
-/** 分组独立布局：preview = 卡片预览图（现状默认）；simple = 横向简洁条（A7 新增） */
+/** 分组独立布局：preview = 卡片预览图（现状默认）；simple = 横向简洁条 */
 type LinkGroupLayout = 'preview' | 'simple'
 
 interface FriendLinkGroup {
   name?: string
   desc?: string
   /**
-   * 【A7】分组独立布局（可选字段）。
+   * 分组独立布局（可选字段）。
    * 只认 'preview' | 'simple'；缺失或非法值一律回落全局 themeConfig.links.layout，
    * 全局也没配则回落 'preview' —— 即老数据（无 layout 字段）渲染与改动前完全一致。
    */
@@ -28,12 +28,12 @@ interface FriendLinkGroup {
   links: FriendLinkItem[]
 }
 
-/** 【A7】themeConfig.links 相关开关，全部可选；不配置即保持现状 */
+/** themeConfig.links 相关开关，全部可选；不配置即保持现状 */
 interface LinksThemeConfig {
   /** 全局默认分组布局，可选 'preview' | 'simple'；缺省 preview（现状） */
   layout?: string
   /**
-   * 【A7】分组随机三态开关：
+   * 分组随机三态开关：
    * - true  → 强制随机；- false → 强制不随机（覆盖 frontmatter random）；
    * - 未设置 → 沿用页面 frontmatter 的 random（即 props.random），完全保持现状
    */
@@ -84,13 +84,13 @@ function shuffleLinks<T>(list: T[]) {
 
 const config = useConfig()
 
-/** 【A7】读取 themeConfig.links；未配置（含 undefined）时用空对象，等价于全部走现状默认 */
+/** 读取 themeConfig.links；未配置（含 undefined）时用空对象，等价于全部走现状默认 */
 const linksConfig = computed<LinksThemeConfig>(() =>
   (config.value?.themeConfig as { links?: LinksThemeConfig } | undefined)?.links ?? {},
 )
 
 /**
- * 【A7】themeConfig.links.shuffleGroups 三态开关：
+ * themeConfig.links.shuffleGroups 三态开关：
  * - true  ：强制随机（即使页面 frontmatter 未写 random）
  * - false ：强制不随机（覆盖 frontmatter 的 random: true）
  * - 未设置：沿用原有 frontmatter random 控制路径（即 props.random），完全保持现状
@@ -231,7 +231,7 @@ function onPreviewError(event: Event) {
             rel="friend noopener"
             target="_blank"
           >
-            <!-- 【A7】simple 分组布局：横向简洁条，hover 浮出站点截图；仅该分组单独生效 -->
+            <!-- simple 分组布局：横向简洁条，hover 浮出站点截图；仅该分组单独生效 -->
             <template v-if="group.layout === 'simple'">
               <img
                 class="links-preview-avatar"
@@ -295,7 +295,7 @@ function onPreviewError(event: Event) {
             :title="`编辑 ${link.name}`"
             @click="onLinkClick(groupIndex, i)"
           >
-            <!-- 【A7】simple 分组布局（后台编辑态同样跟随分组 layout，保证所见即所得） -->
+            <!-- simple 分组布局（后台编辑态同样跟随分组 layout，保证所见即所得） -->
             <template v-if="group.layout === 'simple'">
               <img
                 class="links-preview-avatar"
@@ -664,7 +664,7 @@ function onPreviewError(event: Event) {
   }
 }
 
-/* ===== 【A7】分组独立样式 · simple（横向简洁条）=====
+/* ===== 分组独立样式 · simple（横向简洁条）=====
    作用域严格限定在 .links-preview-group--simple 之内；
    默认的 preview 分组样式一行未改，因此老数据（分组无 layout 字段）渲染与改动前完全一致。 */
 .links-preview-group--simple {
@@ -808,7 +808,7 @@ function onPreviewError(event: Event) {
     color: var(--sakura-color-text, #eee);
   }
 
-  /* 【A7】simple 分组暗色适配 */
+  /* simple 分组暗色适配 */
   .links-preview-group--simple .links-preview-card--simple {
     border-color: color-mix(in srgb, var(--link-color, var(--sakura-color-primary, #fe9500)) 26%, transparent);
     background: oklch(26% 0.01 270);
