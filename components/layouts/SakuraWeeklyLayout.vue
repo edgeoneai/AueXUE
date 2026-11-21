@@ -3,7 +3,7 @@ import { useFrontmatter } from 'valaxy'
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSiteSettings } from '../../composables/useSiteSettings'
-import WeeklyMasthead from '../WeeklyMasthead.vue'
+import WeeklyBoard from '../WeeklyBoard.vue'
 
 const route = useRoute()
 const staticFrontmatter = useFrontmatter()
@@ -34,6 +34,8 @@ const coverSrc = computed(() => frontmatter.value.cover)
 
 const category = computed(() => weekly.value?.category || '周刊')
 const enabled = computed(() => weekly.value?.enable !== false)
+const batchSize = computed(() => weekly.value?.batchSize || 10)
+const featured = computed(() => weekly.value?.featured !== false)
 </script>
 
 <template>
@@ -66,7 +68,13 @@ const enabled = computed(() => weekly.value?.enable !== false)
               <p v-if="!enabled" class="weekly-disabled">
                 周刊页未启用，可在后台「站点设置 → 周刊页」开启。
               </p>
-              <WeeklyMasthead v-else :title="frontmatter.title" :category="category" />
+              <WeeklyBoard
+                v-else
+                :title="frontmatter.title"
+                :category="category"
+                :batch-size="batchSize"
+                :featured="featured"
+              />
             </template>
           </component>
         </RouterView>

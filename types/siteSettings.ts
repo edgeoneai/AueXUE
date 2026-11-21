@@ -111,6 +111,10 @@ export interface WeeklySettings {
   title: string
   /** 归入周刊的文章分类名 */
   category: string
+  /** 每批展示期数（滚动到底自动加载下一批） */
+  batchSize: number
+  /** 是否把最新一期做成头条大卡片 */
+  featured: boolean
 }
 
 /** 追番页（Bilibili 追番列表，构建时拉取） */

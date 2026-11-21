@@ -139,6 +139,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     enable: true,
     title: '周刊',
     category: '周刊',
+    batchSize: 10,
+    featured: true,
   },
   navigationVideos: [
     { url: '/img/1.mp4', weight: 1 },

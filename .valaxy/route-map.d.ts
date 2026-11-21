@@ -129,6 +129,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/weekly': RouteRecordInfo<
+      '/admin/weekly',
+      '/admin/weekly',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/archives/': RouteRecordInfo<
       '/archives/',
       '/archives',
@@ -354,6 +361,14 @@ declare module 'vue-router/auto-routes' {
     'pages/admin/settings.vue': {
       routes:
         | '/admin/settings'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'pages/admin/weekly.vue': {
+      routes:
+        | '/admin/weekly'
       views:
         | never
       pathParamNames:

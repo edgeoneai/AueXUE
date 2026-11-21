@@ -29,6 +29,7 @@ const navItems = [
   { key: 'files', label: 'HTML 文件', icon: 'i-mdi-file-code-outline', to: '/admin/files' },
   { key: 'gallery', label: '相册管理', icon: 'i-mdi-image-multiple-outline', to: '/admin/gallery' },
   { key: 'notice', label: '公告栏管理', icon: 'i-mdi-bullhorn-outline', to: '/admin/notice' },
+  { key: 'weekly', label: '周刊管理', icon: 'i-mdi-newspaper-variant-outline', to: '/admin/weekly' },
   { key: 'about', label: '关于页', icon: 'i-mdi-information-outline', to: '/admin/about' },
   { key: 'settings', label: '站点设置', icon: 'i-mdi-cog-outline', to: '/admin/settings' },
 ]
@@ -63,6 +64,11 @@ const isNoticeActive = computed(() => {
   return path === '/admin/notice'
 })
 
+const isWeeklyActive = computed(() => {
+  const path = router.currentRoute.value.path.replace(/\/$/, '') || '/'
+  return path === '/admin/weekly'
+})
+
 const isSettingsActive = computed(() => {
   const path = router.currentRoute.value.path.replace(/\/$/, '') || '/'
   return path === '/admin/settings'
@@ -81,6 +87,8 @@ function isNavActive(key: string) {
     return isGalleryActive.value
   if (key === 'notice')
     return isNoticeActive.value
+  if (key === 'weekly')
+    return isWeeklyActive.value
   if (key === 'settings')
     return isSettingsActive.value
   return false

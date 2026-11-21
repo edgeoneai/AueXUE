@@ -182,6 +182,8 @@ function normalizeWeekly(raw: Record<string, unknown>, fallback: WeeklySettings)
     enable: bool(raw.enable, fallback.enable),
     title: str(raw.title, fallback.title).trim() || fallback.title,
     category: str(raw.category, fallback.category).trim() || fallback.category,
+    batchSize: Math.min(50, num(raw.batchSize, fallback.batchSize, 1)),
+    featured: bool(raw.featured, fallback.featured),
   }
 }
 
