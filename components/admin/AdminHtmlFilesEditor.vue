@@ -414,7 +414,7 @@ defineExpose({
   &__board {
     border: 1px solid #000;
     border-radius: 12px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     padding: 0.75rem;
   }
 
@@ -464,9 +464,9 @@ defineExpose({
 
   &__item {
     padding: 0.42rem 0.7rem;
-    border: 1px solid var(--admin-field-border-color);
+    border: 1px solid var(--admin-subtle-border);
     border-radius: 8px;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
   }
 
   &__title {
@@ -474,7 +474,7 @@ defineExpose({
     min-width: 0;
     font-size: 0.875rem;
     font-weight: 700;
-    color: var(--admin-field-text);
+    color: var(--admin-field-text, #111);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -500,7 +500,7 @@ defineExpose({
     max-width: 100%;
     padding: 0.05rem 0.3rem;
     border-radius: 4px;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     color: #444;
     font-size: 0.6875rem;
     line-height: 1.3;
@@ -511,7 +511,7 @@ defineExpose({
 
   &__date {
     justify-self: start;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
     font-size: 0.6875rem;
     line-height: 1.3;
     white-space: nowrap;
@@ -544,8 +544,8 @@ defineExpose({
     }
 
     &:hover:not(:disabled) {
-      background: var(--admin-page-bg);
-      color: var(--admin-label-color);
+      background: var(--admin-page-bg, #f4f5f7);
+      color: var(--admin-label-color, #333);
     }
 
     &:disabled {
@@ -555,7 +555,7 @@ defineExpose({
   }
 
   &__menu.is-open &__menu-trigger {
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     color: #e93d6d;
   }
 
@@ -566,7 +566,7 @@ defineExpose({
     padding: 0.35rem;
     border: 1px solid #000;
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
   }
 
@@ -612,8 +612,8 @@ defineExpose({
     padding: 0 0.9rem;
     border-radius: 8px;
     border: 1px solid #000;
-    background: var(--admin-field-bg);
-    color: var(--admin-field-text);
+    background: var(--admin-field-bg, #fff);
+    color: var(--admin-field-text, #111);
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
@@ -625,11 +625,11 @@ defineExpose({
     }
 
     &--ghost {
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
     }
 
     &--danger {
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       border-color: #c0392b;
       color: #c0392b;
     }
@@ -658,7 +658,7 @@ defineExpose({
     flex-direction: column;
     border: 1px solid #000;
     border-radius: 12px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     overflow: hidden;
   }
 
@@ -746,7 +746,7 @@ defineExpose({
     }
 
     small {
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
       font-size: 0.6875rem;
       line-height: 1.3;
     }
@@ -867,13 +867,13 @@ defineExpose({
     margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
-    color: var(--admin-field-text);
+    color: var(--admin-field-text, #111);
   }
 
   p {
     margin: 0.1rem 0 0;
     font-size: 0.75rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
   }
 }
 

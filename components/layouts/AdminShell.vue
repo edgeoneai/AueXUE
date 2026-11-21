@@ -260,7 +260,13 @@ function handleLogout() {
 </template>
 
 <style lang="scss">
-.admin-layout {
+/**
+ * 后台配色变量必须定义在根级，不能只挂在 .admin-layout 上。
+ * 原因：后台多处弹层用 <Teleport to="body"> 挂到 body 下，
+ * 已不在 .admin-layout 子树内，拿不到那里定义的 CSS 变量，
+ * 于是 var(--admin-field-bg) 失效、弹层背景透明（能看穿到下面的页面内容）。
+ */
+:root {
   --admin-sidebar-width: 220px;
   --admin-content-inline: 1.75rem;
   --admin-pink: #e93d6d;
@@ -272,9 +278,30 @@ function handleLogout() {
   --admin-field-bg: #fff;
   --admin-field-text: #111;
   --admin-field-border-color: #000;
+  /* 输入框/卡片的分隔线：对应组件里原本的 #ddd 浅灰，不要和 --admin-border-color(#000) 混用 */
+  --admin-subtle-border: #ddd;
   --admin-field-placeholder: #666;
   --admin-label-color: #333;
   --admin-muted-color: #555;
+}
+
+/* 深色值挂在 html.dark：与前台 useDark 用同一个类，Teleport 出去的弹层同样能拿到 */
+html.dark {
+  --admin-sidebar-bg: #1e1f22;
+  --admin-topbar-bg: #1e1f22;
+  --admin-page-bg: #16171a;
+  --admin-field-bg: #24262b;
+  --admin-field-text: #e6e6e6;
+  --admin-field-border-color: #3a3d44;
+  --admin-subtle-border: #3a3d44;
+  --admin-field-placeholder: #8b8f98;
+  --admin-label-color: #c9ccd3;
+  --admin-muted-color: #9aa0aa;
+  --admin-border: 1px solid #3a3d44;
+  --admin-border-color: #3a3d44;
+}
+
+.admin-layout {
 
   color-scheme: light;
   position: fixed;
@@ -282,7 +309,7 @@ function handleLogout() {
   z-index: 1000;
   display: flex;
   min-height: 100dvh;
-  background: var(--admin-page-bg);
+  background: var(--admin-page-bg, #f4f5f7);
   color: #333;
 
   /* 深色主题：跟随前台 isDark。整套变量重定义 + 少量硬编码色的选择器覆盖。 */
@@ -293,6 +320,7 @@ function handleLogout() {
     --admin-field-bg: #24262b;
     --admin-field-text: #e6e6e6;
     --admin-field-border-color: #3a3d44;
+    --admin-subtle-border: #3a3d44;
     --admin-field-placeholder: #8b8f98;
     --admin-label-color: #c9ccd3;
     --admin-muted-color: #9aa0aa;
@@ -300,7 +328,7 @@ function handleLogout() {
     --admin-border-color: #3a3d44;
 
     color-scheme: dark;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     color: #d7dae0;
 
     .admin-layout__sidebar {
@@ -687,10 +715,10 @@ function handleLogout() {
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']),
     textarea,
     select {
-      background-color: var(--admin-field-bg);
-      color: var(--admin-field-text);
-      caret-color: var(--admin-field-text);
-      -webkit-text-fill-color: var(--admin-field-text);
+      background-color: var(--admin-field-bg, #fff);
+      color: var(--admin-field-text, #111);
+      caret-color: var(--admin-field-text, #111);
+      -webkit-text-fill-color: var(--admin-field-text, #111);
 
       &::placeholder {
         color: var(--admin-field-placeholder);
@@ -707,7 +735,7 @@ function handleLogout() {
 
     [class*='__field'] label,
     [class*='__field'] > span:first-child {
-      color: var(--admin-label-color);
+      color: var(--admin-label-color, #333);
     }
   }
 
@@ -856,9 +884,9 @@ html.dark .admin-layout {
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']),
     textarea,
     select {
-      background-color: var(--admin-field-bg);
-      color: var(--admin-field-text);
-      -webkit-text-fill-color: var(--admin-field-text);
+      background-color: var(--admin-field-bg, #fff);
+      color: var(--admin-field-text, #111);
+      -webkit-text-fill-color: var(--admin-field-text, #111);
     }
   }
 }

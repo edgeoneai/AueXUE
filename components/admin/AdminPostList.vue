@@ -459,7 +459,7 @@ onUnmounted(() => {
   --admin-border-color: #000;
 
   &__card {
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     border-radius: 12px;
     box-shadow: 0 2px 12px rgb(0 0 0 / 6%);
     border: var(--admin-border);
@@ -519,7 +519,7 @@ onUnmounted(() => {
     padding: 0 0.75rem;
     border: var(--admin-border);
     border-radius: 8px;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
 
     span {
       width: 1.1rem;
@@ -547,10 +547,10 @@ onUnmounted(() => {
     padding: 0 0.75rem;
     border: var(--admin-border);
     border-radius: 8px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     font-size: 0.875rem;
     line-height: 1;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
     cursor: pointer;
   }
 
@@ -564,7 +564,7 @@ onUnmounted(() => {
     padding: 0 0.85rem;
     border: var(--admin-border);
     border-radius: 8px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     color: #666;
     font-size: 0.875rem;
     line-height: 1;
@@ -577,7 +577,7 @@ onUnmounted(() => {
 
     &:hover {
       border-color: var(--admin-border-color);
-      color: var(--admin-label-color);
+      color: var(--admin-label-color, #333);
     }
   }
 
@@ -612,10 +612,10 @@ onUnmounted(() => {
     }
 
     th {
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
       font-weight: 600;
       font-size: 0.8125rem;
-      background: var(--admin-page-bg);
+      background: var(--admin-page-bg, #f4f5f7);
     }
 
     td {
@@ -623,7 +623,7 @@ onUnmounted(() => {
     }
 
     tbody tr:hover {
-      background: var(--admin-page-bg);
+      background: var(--admin-page-bg, #f4f5f7);
     }
   }
 
@@ -675,7 +675,7 @@ onUnmounted(() => {
   }
 
   &__table tbody tr:hover td.admin-posts__spacer {
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
   }
 
   &__date {
@@ -697,16 +697,16 @@ onUnmounted(() => {
     padding-right: 0.75rem;
     text-align: center;
     white-space: nowrap;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
   }
 
   &__table th.admin-posts__actions {
     z-index: 2;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
   }
 
   &__table tbody tr:hover td.admin-posts__actions {
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
   }
 
   &__article {
@@ -722,7 +722,7 @@ onUnmounted(() => {
     height: 48px;
     border-radius: 8px;
     overflow: hidden;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -748,7 +748,7 @@ onUnmounted(() => {
 
   &__article-title {
     font-weight: 600;
-    color: var(--admin-field-text);
+    color: var(--admin-field-text, #111);
     line-height: 1.4;
     margin-bottom: 0.25rem;
     overflow: hidden;
@@ -811,13 +811,13 @@ onUnmounted(() => {
     }
 
     &:hover {
-      background: var(--admin-page-bg);
-      color: var(--admin-label-color);
+      background: var(--admin-page-bg, #f4f5f7);
+      color: var(--admin-label-color, #333);
     }
   }
 
   &__menu.is-open &__menu-trigger {
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     color: var(--admin-pink);
   }
 
@@ -829,7 +829,7 @@ onUnmounted(() => {
     padding: 0.35rem;
     border: var(--admin-border);
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
   }
 
@@ -885,7 +885,7 @@ onUnmounted(() => {
     gap: 1rem;
     padding: 0.85rem 1.25rem;
     font-size: 0.8125rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
   }
 
   &__pagination {
@@ -902,8 +902,8 @@ onUnmounted(() => {
       padding: 0 0.65rem;
       border: var(--admin-border);
       border-radius: 6px;
-      background: var(--admin-field-bg);
-      color: var(--admin-muted-color);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-muted-color, #555);
       font-size: 0.8125rem;
       line-height: 1;
       cursor: pointer;
@@ -937,10 +937,10 @@ onUnmounted(() => {
     padding: 0 1.75rem 0 0.5rem;
     border: var(--admin-border);
     border-radius: 6px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     font-size: 0.8125rem;
     line-height: 1;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
     cursor: pointer;
   }
 
@@ -1013,7 +1013,7 @@ onUnmounted(() => {
       padding: 0 0.65rem;
       border: var(--admin-border);
       border-radius: 8px;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       color: #666;
       font-size: 0.8125rem;
       line-height: 1;

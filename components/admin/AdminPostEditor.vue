@@ -468,7 +468,7 @@ defineExpose({
       margin: 0 0 0.1rem;
       font-size: 1.0625rem;
       font-weight: 700;
-      color: var(--admin-field-text);
+      color: var(--admin-field-text, #111);
       line-height: 1.25;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -478,7 +478,7 @@ defineExpose({
     p {
       margin: 0;
       font-size: 0.75rem;
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
       line-height: 1.3;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -512,12 +512,12 @@ defineExpose({
 
     &--ghost {
       border: var(--admin-border);
-      background: var(--admin-field-bg);
-      color: var(--admin-muted-color);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-muted-color, #555);
 
       &:hover {
         border-color: var(--admin-border-color);
-        color: var(--admin-label-color);
+        color: var(--admin-label-color, #333);
       }
     }
 
@@ -579,7 +579,7 @@ defineExpose({
     padding: 0.65rem 1rem;
     border: var(--admin-border);
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     box-shadow: 0 1px 4px rgb(0 0 0 / 4%);
 
     .admin-editor__field {
@@ -624,9 +624,9 @@ defineExpose({
       padding: 0.65rem 0.85rem;
       border: var(--admin-border);
       border-radius: 8px;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       font-size: 0.9375rem;
-      color: var(--admin-field-text);
+      color: var(--admin-field-text, #111);
       line-height: 1.45;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -699,7 +699,7 @@ defineExpose({
     border-radius: 10px;
     color: #999;
     font-size: 0.875rem;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
   }
 
   &__aside {
@@ -715,7 +715,7 @@ defineExpose({
     padding: 0.65rem 1rem;
     border: var(--admin-border);
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     box-shadow: 0 1px 4px rgb(0 0 0 / 4%);
   }
 
@@ -751,10 +751,10 @@ defineExpose({
       padding: 0 0.65rem;
       border: var(--admin-border);
       border-radius: 6px;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       font-size: 0.875rem;
       line-height: 1.35;
-      color: var(--admin-label-color);
+      color: var(--admin-label-color, #333);
 
       &:focus {
         outline: none;
@@ -785,7 +785,7 @@ defineExpose({
     padding: 0.2rem 0.55rem;
     border: var(--admin-border);
     border-radius: 6px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     min-height: 2.125rem;
   }
 
@@ -823,7 +823,7 @@ defineExpose({
     background: transparent;
     font-size: 0.8125rem;
     line-height: 1.35;
-    color: var(--admin-label-color);
+    color: var(--admin-label-color, #333);
 
     &:focus {
       outline: none;
@@ -838,14 +838,14 @@ defineExpose({
     padding: 0.4rem 0.65rem;
     border: var(--admin-border);
     border-radius: 6px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     color: #c0392b;
     font-size: 0.75rem;
     cursor: pointer;
     transition: background 0.2s ease;
 
     &:hover {
-      background: var(--admin-field-bg)5f5;
+      background: var(--admin-field-bg, #fff)5f5;
     }
   }
 

@@ -157,13 +157,13 @@ defineExpose({
       margin: 0 0 0.1rem;
       font-size: 1.0625rem;
       font-weight: 700;
-      color: var(--admin-field-text);
+      color: var(--admin-field-text, #111);
     }
 
     p {
       margin: 0;
       font-size: 0.75rem;
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
     }
   }
 
@@ -189,8 +189,8 @@ defineExpose({
 
     &--ghost {
       border: var(--admin-border);
-      background: var(--admin-field-bg);
-      color: var(--admin-muted-color);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-muted-color, #555);
     }
 
     &--primary {
@@ -213,7 +213,7 @@ defineExpose({
     padding: 1rem;
     border: var(--admin-border);
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
   }
 
   &__field {
@@ -233,15 +233,15 @@ defineExpose({
       border: var(--admin-border);
       border-radius: 8px;
       font-size: 0.875rem;
-      background: var(--admin-field-bg);
-      color: var(--admin-field-text);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-field-text, #111);
     }
   }
 
   &__editor {
     border: var(--admin-border);
     border-radius: 10px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     overflow: hidden;
   }
 
@@ -250,7 +250,7 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
     font-size: 0.875rem;
   }
 

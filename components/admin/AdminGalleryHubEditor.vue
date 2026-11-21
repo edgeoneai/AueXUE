@@ -475,13 +475,13 @@ defineExpose({
       margin: 0 0 0.1rem;
       font-size: 1.0625rem;
       font-weight: 700;
-      color: var(--admin-field-text);
+      color: var(--admin-field-text, #111);
     }
 
     p {
       margin: 0;
       font-size: 0.75rem;
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
     }
   }
 
@@ -510,8 +510,8 @@ defineExpose({
 
     &--ghost {
       border: var(--admin-border);
-      background: var(--admin-field-bg);
-      color: var(--admin-muted-color);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-muted-color, #555);
     }
 
     &--primary {
@@ -530,7 +530,7 @@ defineExpose({
     padding: 24px;
     border: var(--admin-border);
     border-radius: 12px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
   }
 }
 
@@ -551,7 +551,7 @@ defineExpose({
     flex-direction: column;
     border: 1px solid #000;
     border-radius: 12px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     box-shadow: 0 18px 48px rgb(0 0 0 / 18%);
 
     &--narrow {
@@ -571,7 +571,7 @@ defineExpose({
       margin: 0;
       font-size: 1rem;
       font-weight: 700;
-      color: var(--admin-field-text);
+      color: var(--admin-field-text, #111);
     }
   }
 
@@ -588,8 +588,8 @@ defineExpose({
     cursor: pointer;
 
     &:hover {
-      background: var(--admin-page-bg);
-      color: var(--admin-field-text);
+      background: var(--admin-page-bg, #f4f5f7);
+      color: var(--admin-field-text, #111);
     }
   }
 
@@ -619,7 +619,7 @@ defineExpose({
       border: 1px solid #000;
       border-radius: 8px;
       font-size: 0.875rem;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
     }
 
     &--wide {
@@ -670,8 +670,8 @@ defineExpose({
 
     &--ghost {
       border: 1px solid #000;
-      background: var(--admin-field-bg);
-      color: var(--admin-muted-color);
+      background: var(--admin-field-bg, #fff);
+      color: var(--admin-muted-color, #555);
     }
 
     &--primary {
@@ -682,7 +682,7 @@ defineExpose({
 
     &--danger {
       border: 1px solid #000;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       color: #c0392b;
     }
   }

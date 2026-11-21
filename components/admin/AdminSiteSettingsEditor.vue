@@ -490,7 +490,7 @@ const socialCount = computed(() => form.value.social.length)
   &__hint {
     margin: -0.3rem 0 0.6rem;
     font-size: 0.8125rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
     line-height: 1.5;
   }
 
@@ -513,7 +513,7 @@ const socialCount = computed(() => form.value.social.length)
   }
 
   &__section {
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
     border: 1px solid #e6e6e6;
     border-radius: 12px;
     padding: 1.25rem;
@@ -533,7 +533,7 @@ const socialCount = computed(() => form.value.social.length)
 
   &__count {
     font-size: 0.75rem;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     border-radius: 10px;
     padding: 0 0.5rem;
     color: #666;
@@ -542,10 +542,10 @@ const socialCount = computed(() => form.value.social.length)
   &__hint {
     margin: 0;
     font-size: 0.8rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
 
     code {
-      background: var(--admin-page-bg);
+      background: var(--admin-page-bg, #f4f5f7);
       padding: 0 0.25rem;
       border-radius: 3px;
     }
@@ -567,7 +567,7 @@ const socialCount = computed(() => form.value.social.length)
     flex-direction: column;
     gap: 0.35rem;
     font-size: 0.82rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
 
     &--inline {
       flex-direction: row;
@@ -580,12 +580,12 @@ const socialCount = computed(() => form.value.social.length)
     select,
     textarea {
       width: 100%;
-      border: 1px solid var(--admin-field-border-color);
+      border: 1px solid var(--admin-subtle-border);
       border-radius: 6px;
       padding: 0.45rem 0.6rem;
       font-size: 0.85rem;
       font-family: inherit;
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
 
       &:focus {
         outline: none;
@@ -609,9 +609,9 @@ const socialCount = computed(() => form.value.social.length)
     width: 42px;
     height: 32px;
     padding: 0;
-    border: 1px solid var(--admin-field-border-color);
+    border: 1px solid var(--admin-subtle-border);
     border-radius: 6px;
-    background: var(--admin-field-bg);
+    background: var(--admin-field-bg, #fff);
   }
 
   &__checks {
@@ -619,7 +619,7 @@ const socialCount = computed(() => form.value.social.length)
     flex-wrap: wrap;
     gap: 1rem;
     font-size: 0.82rem;
-    color: var(--admin-muted-color);
+    color: var(--admin-muted-color, #555);
 
     label {
       display: flex;
@@ -635,7 +635,7 @@ const socialCount = computed(() => form.value.social.length)
     align-items: center;
 
     input {
-      border: 1px solid var(--admin-field-border-color);
+      border: 1px solid var(--admin-subtle-border);
       border-radius: 6px;
       padding: 0.4rem 0.55rem;
       font-size: 0.82rem;
@@ -656,8 +656,8 @@ const socialCount = computed(() => form.value.social.length)
     gap: 0.25rem;
 
     button {
-      border: 1px solid var(--admin-field-border-color);
-      background: var(--admin-field-bg);
+      border: 1px solid var(--admin-subtle-border);
+      background: var(--admin-field-bg, #fff);
       border-radius: 5px;
       padding: 0.3rem 0.5rem;
       font-size: 0.75rem;
@@ -697,7 +697,7 @@ const socialCount = computed(() => form.value.social.length)
     gap: 0.75rem;
     position: sticky;
     bottom: 0;
-    background: var(--admin-page-bg);
+    background: var(--admin-page-bg, #f4f5f7);
     padding: 0.85rem 0;
   }
 
@@ -718,9 +718,9 @@ const socialCount = computed(() => form.value.social.length)
     }
 
     &--ghost {
-      background: var(--admin-field-bg);
+      background: var(--admin-field-bg, #fff);
       border-color: #ddd;
-      color: var(--admin-muted-color);
+      color: var(--admin-muted-color, #555);
     }
 
     &:disabled {
