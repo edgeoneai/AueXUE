@@ -86,63 +86,32 @@ function isNavActive(key: string) {
   return false
 }
 
-const backLink = computed(() => {
-  const path = router.currentRoute.value.path.replace(/\/$/, '') || '/'
-  if (path === '/admin/new' || path.startsWith('/admin/edit/') || path === '/admin/edit') {
-    return {
-      to: '/admin',
-      label: '返回文章列表',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  if (path === '/admin/links') {
-    return {
-      to: '/admin',
-      label: '返回管理后台',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  if (path === '/admin/files') {
-    return {
-      to: '/admin',
-      label: '返回管理后台',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  if (path === '/admin/about') {
-    return {
-      to: '/admin',
-      label: '返回管理后台',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  if (path === '/admin/gallery' || path.startsWith('/admin/gallery/')) {
-    if (path.startsWith('/admin/gallery/') && path !== '/admin/gallery') {
-      return {
-        to: '/admin/gallery',
-        label: '返回相册列表',
-        icon: 'i-mdi-arrow-left',
-      }
-    }
-    return {
-      to: '/admin',
-      label: '返回管理后台',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  if (path === '/admin/notice') {
-    return {
-      to: '/admin',
-      label: '返回管理后台',
-      icon: 'i-mdi-arrow-left',
-    }
-  }
-  return {
-    to: '/',
-    label: '返回站点',
-    icon: 'i-mdi-home-export-outline',
-  }
-})
+// 顶栏左侧唯一的图标按钮：永远返回前台首页。
+// 原先按当前页面跳「返回上级」的规则已取消，改由浏览器后退/侧栏导航承担。
+const backLink = computed(() => ({
+  to: '/',
+  label: '返回首页',
+  icon: 'i-mdi-home-export-outline',
+}))
+
+function isNavActive(key: string) {
+  if (key === 'posts')
+    return isPostsActive.value
+  if (key === 'links')
+    return isLinksActive.value
+  if (key === 'files')
+    return isFilesActive.value
+  if (key === 'about')
+    return isAboutActive.value
+  if (key === 'gallery')
+    return isGalleryActive.value
+  if (key === 'notice')
+    return isNoticeActive.value
+  if (key === 'settings')
+    return isSettingsActive.value
+  return false
+}
+
 
 function closeSidebar() {
   sidebarOpen.value = false
