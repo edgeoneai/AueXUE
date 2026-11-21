@@ -23,6 +23,11 @@ export const mainNavItems = [
     link: '/files',
   },
   {
+    text: '周刊',
+    icon: 'i-ant-design:schedule-filled',
+    link: '/weekly',
+  },
+  {
     text: '管理',
     icon: 'i-ant-design:setting-filled',
     link: '/admin',
@@ -38,8 +43,7 @@ export const mainNavItems = [
     link: '/links',
     items: [
       { text: '导航', icon: 'i-ant-design:compass-filled', link: '/navigation' },
-      { text: '追番', icon: 'i-ri-tv-2-line', link: '/bangumi' },
-      { text: '周刊', icon: 'i-ri-newspaper-line', link: '/weekly' },
+      { text: '追番', icon: 'i-ant-design:play-square-filled', link: '/bangumi' },
       { text: '留言', icon: 'i-ant-design:message-filled', link: '/comment' },
       { text: '友链', icon: 'i-ant-design:global-outlined', link: '/links' },
     ],
