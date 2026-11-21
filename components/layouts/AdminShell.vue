@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, provide, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useValaxyDark } from 'valaxy'
 import { adminTopbarTargetKey } from '../../utils/adminShellContext'
 import AdminToastHost from '../admin/AdminToastHost.vue'
 
@@ -13,6 +14,9 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+// 后台跟随前台深浅色：与前台共用同一个 useDark（html.dark + localStorage），
+// 因此在后台切换主题，回到前台也是同一个配色状态。
+const { isDark } = useValaxyDark()
 const sidebarOpen = ref(false)
 const userMenuOpen = ref(false)
 const topbarTargetRef = ref<HTMLElement | null>(null)
@@ -238,7 +242,10 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="admin-layout" :class="{ 'admin-layout--sidebar-open': sidebarOpen }">
+  <div
+    class="admin-layout"
+    :class="{ 'admin-layout--sidebar-open': sidebarOpen, 'admin-layout--dark': isDark }"
+  >
     <aside class="admin-layout__sidebar">
       <div class="admin-layout__sidebar-user">
         <button
@@ -326,6 +333,62 @@ function handleLogout() {
   min-height: 100dvh;
   background: var(--admin-page-bg);
   color: #333;
+
+  /* 深色主题：跟随前台 isDark。整套变量重定义 + 少量硬编码色的选择器覆盖。 */
+  &--dark {
+    --admin-sidebar-bg: #1e1f22;
+    --admin-topbar-bg: #1e1f22;
+    --admin-page-bg: #16171a;
+    --admin-field-bg: #24262b;
+    --admin-field-text: #e6e6e6;
+    --admin-field-border-color: #3a3d44;
+    --admin-field-placeholder: #8b8f98;
+    --admin-label-color: #c9ccd3;
+    --admin-muted-color: #9aa0aa;
+    --admin-border: 1px solid #3a3d44;
+    --admin-border-color: #3a3d44;
+
+    color-scheme: dark;
+    background: var(--admin-page-bg);
+    color: #d7dae0;
+
+    .admin-layout__sidebar {
+      color: #d7dae0;
+    }
+
+    .admin-layout__nav-item {
+      color: #c9ccd3;
+
+      &:hover {
+        background: #2a2c32;
+        color: #fff;
+      }
+
+      &.is-active {
+        background: rgb(233 61 109 / 18%);
+      }
+    }
+
+    .admin-layout__user {
+      color: #d7dae0;
+
+      &:hover {
+        background: #2a2c32;
+      }
+    }
+
+    .admin-layout__user-name {
+      color: #d7dae0;
+    }
+
+    .admin-layout__menu-btn {
+      color: #d7dae0;
+
+      &:hover {
+        background: #2a2c32;
+      }
+    }
+  }
 
   &--sidebar-open {
     .admin-layout__sidebar {

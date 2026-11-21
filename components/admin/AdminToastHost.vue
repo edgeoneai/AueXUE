@@ -58,7 +58,7 @@ const { toasts, dismiss } = useAdminToast()
   padding: 0.75rem 0.85rem;
   border: 1px solid #000;
   border-radius: 10px;
-  background: #fff;
+  background: var(--admin-field-bg);
   box-shadow: 0 10px 28px rgb(0 0 0 / 16%);
   pointer-events: auto;
   font-size: 0.875rem;
@@ -72,7 +72,7 @@ const { toasts, dismiss } = useAdminToast()
 
   &--error {
     border-color: #c0392b;
-    background: #fff5f7;
+    background: var(--admin-field-bg)5f7;
     color: #c0392b;
   }
 

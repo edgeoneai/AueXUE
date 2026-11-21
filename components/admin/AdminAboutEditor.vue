@@ -157,13 +157,13 @@ defineExpose({
       margin: 0 0 0.1rem;
       font-size: 1.0625rem;
       font-weight: 700;
-      color: #222;
+      color: var(--admin-field-text);
     }
 
     p {
       margin: 0;
       font-size: 0.75rem;
-      color: #888;
+      color: var(--admin-muted-color);
     }
   }
 
@@ -189,8 +189,8 @@ defineExpose({
 
     &--ghost {
       border: var(--admin-border);
-      background: #fff;
-      color: #555;
+      background: var(--admin-field-bg);
+      color: var(--admin-muted-color);
     }
 
     &--primary {
@@ -213,7 +213,7 @@ defineExpose({
     padding: 1rem;
     border: var(--admin-border);
     border-radius: 10px;
-    background: #fff;
+    background: var(--admin-field-bg);
   }
 
   &__field {
@@ -233,15 +233,15 @@ defineExpose({
       border: var(--admin-border);
       border-radius: 8px;
       font-size: 0.875rem;
-      background: #fff;
-      color: #111;
+      background: var(--admin-field-bg);
+      color: var(--admin-field-text);
     }
   }
 
   &__editor {
     border: var(--admin-border);
     border-radius: 10px;
-    background: #fff;
+    background: var(--admin-field-bg);
     overflow: hidden;
   }
 
@@ -250,7 +250,7 @@ defineExpose({
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: var(--admin-muted-color);
     font-size: 0.875rem;
   }
 

@@ -403,13 +403,13 @@ defineExpose({
       margin: 0 0 0.1rem;
       font-size: 1.0625rem;
       font-weight: 700;
-      color: #222;
+      color: var(--admin-field-text);
     }
 
     p {
       margin: 0;
       font-size: 0.75rem;
-      color: #888;
+      color: var(--admin-muted-color);
     }
   }
 
@@ -435,8 +435,8 @@ defineExpose({
     cursor: pointer;
     white-space: nowrap;
     border: var(--admin-border);
-    background: #fff;
-    color: #555;
+    background: var(--admin-field-bg);
+    color: var(--admin-muted-color);
 
     &--primary {
       background: var(--admin-pink);
@@ -464,7 +464,7 @@ defineExpose({
 
   &__notice,
   &__empty {
-    background: #fafafa;
+    background: var(--admin-page-bg);
     color: #666;
     text-align: center;
   }
@@ -473,7 +473,7 @@ defineExpose({
     padding: 24px;
     border: var(--admin-border);
     border-radius: 12px;
-    background: #fff;
+    background: var(--admin-field-bg);
   }
 
   &__timeline {
@@ -490,7 +490,7 @@ defineExpose({
     border-left: 3px solid var(--sakura-color-primary, #fe9500);
     font-size: 1rem;
     font-weight: 700;
-    color: #222;
+    color: var(--admin-field-text);
   }
 
   &__grid {
@@ -512,7 +512,7 @@ defineExpose({
     border-radius: 12px;
     overflow: hidden;
     aspect-ratio: 1;
-    background: #f3f3f3;
+    background: var(--admin-page-bg);
     cursor: default;
 
     img,
@@ -628,7 +628,7 @@ defineExpose({
     width: min(520px, 100%);
     border: 1px solid #000;
     border-radius: 12px;
-    background: #fff;
+    background: var(--admin-field-bg);
   }
 
   &__head {

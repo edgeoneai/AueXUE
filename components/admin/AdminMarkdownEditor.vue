@@ -248,8 +248,8 @@ defineExpose({
   :deep(.vditor) {
     border: var(--admin-border);
     border-radius: 8px;
-    background: #fff;
-    color: #111;
+    background: var(--admin-field-bg);
+    color: var(--admin-field-text);
     font-family: inherit;
     overflow: visible;
   }
@@ -267,7 +267,7 @@ defineExpose({
     gap: 0.125rem;
     padding: 0.35rem 0.65rem;
     border-bottom: var(--admin-border);
-    background: #fff;
+    background: var(--admin-field-bg);
     border-radius: 8px 8px 0 0;
   }
 
@@ -299,14 +299,14 @@ defineExpose({
     padding: 0.5rem 0.875rem;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: #111;
-    background: #fff;
+    color: var(--admin-field-text);
+    background: var(--admin-field-bg);
   }
 
   :deep(.vditor-ir pre.vditor-reset) {
     background-color: #fff;
-    color: #111;
-    -webkit-text-fill-color: #111;
+    color: var(--admin-field-text);
+    -webkit-text-fill-color: var(--admin-field-text);
     margin: 0;
     white-space: pre-wrap;
     font-family: inherit;
@@ -322,7 +322,7 @@ defineExpose({
 
   :deep(.vditor-ir__preview) {
     min-height: 0;
-    color: #111;
+    color: var(--admin-field-text);
   }
 
   :deep(.vditor-ir__preview *:not(a):not(code)) {
@@ -331,7 +331,7 @@ defineExpose({
   }
 
   :deep(.vditor-ir__preview code:not(.hljs)) {
-    color: #111;
+    color: var(--admin-field-text);
   }
 
   /* 隐藏语言标识，不弹出语言选择 */
@@ -390,7 +390,7 @@ defineExpose({
   }
 
   :deep(.vditor-ir__marker) {
-    color: #555;
+    color: var(--admin-muted-color);
   }
 
   :deep(.vditor-ir ul),
@@ -413,7 +413,7 @@ defineExpose({
 
   /* 代码块编辑态：清晰源码样式 */
   :deep(.vditor-ir__node--expand[data-type="code-block"]) {
-    background: #fff;
+    background: var(--admin-field-bg);
     border: 1px solid #000;
     border-radius: 8px;
     padding: 0.25rem 0.375rem;
@@ -428,7 +428,7 @@ defineExpose({
     overflow: visible;
     background: transparent !important;
     background-image: none !important;
-    color: #111;
+    color: var(--admin-field-text);
     font-family: ui-monospace, Consolas, 'Cascadia Code', monospace;
     font-size: 0.875rem;
     line-height: 1.45;
@@ -437,7 +437,7 @@ defineExpose({
 
   :deep(.vditor-ir__node--expand[data-type="code-block"]:before),
   :deep(.vditor-ir__node--expand[data-type="code-block"]:after) {
-    color: #555;
+    color: var(--admin-muted-color);
     font-family: ui-monospace, Consolas, monospace;
     font-size: 0.8125rem;
   }
@@ -446,9 +446,9 @@ defineExpose({
   :deep(.vditor-ir__preview pre),
   :deep(.vditor-ir__preview pre > code),
   :deep(.vditor-ir__preview .hljs) {
-    background: #f6f8fa !important;
+    background: var(--admin-page-bg) !important;
     background-image: none !important;
-    color: #111 !important;
+    color: var(--admin-field-text) !important;
     border: var(--admin-border);
     border-radius: 8px;
     font-family: ui-monospace, Consolas, 'Cascadia Code', monospace;
@@ -559,7 +559,7 @@ html.dark .admin-md-editor {
   .vditor-ir pre.vditor-reset,
   .vditor-ir__preview,
   .vditor-ir__preview :is(p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, strong, em) {
-    color: #111 !important;
+    color: var(--admin-field-text) !important;
     -webkit-text-fill-color: currentcolor !important;
   }
 }
