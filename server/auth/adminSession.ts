@@ -2,8 +2,13 @@ import type { CloudflareEnv } from '../../types/env'
 import { getAdminEnvFromProcess, loadAdminEnv } from './loadAdminEnv'
 
 export const ADMIN_SESSION_COOKIE = 'admin_session'
-/** 单次管理会话有效时长（离开 /admin 后会清除 Cookie） */
-export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 4
+/**
+ * 管理会话有效时长（秒）：30 天。
+ * 只在主动点「退出登录」时清除，离开 /admin 不会失效。
+ * 令牌用 ADMIN_API_TOKEN / ADMIN_PASSWORD 做 HMAC 签名，改密码即全网失效，
+ * 因此长有效期不额外放大风险。
+ */
+export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 30
 
 export interface AdminAuthEnv {
   ADMIN_USERNAME?: string
