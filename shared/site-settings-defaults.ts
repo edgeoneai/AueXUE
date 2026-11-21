@@ -123,6 +123,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     vmid: '',
     quote: '生命不息，追番不止！',
   },
+  home: {
+    layout: 'cards',
+    listSidebar: true,
+  },
   weekly: {
     enable: true,
     title: '周刊',

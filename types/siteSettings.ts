@@ -79,6 +79,14 @@ export interface ServiceSettings {
   hitokotoApi: string
 }
 
+/** 首页布局 */
+export interface HomeSettings {
+  /** 首页文章列表样式：cards = 卡片网格；list = 列表 + 侧栏；timeline = 时间线 */
+  layout: 'cards' | 'list' | 'timeline'
+  /** list 布局时是否显示右侧栏（随机文章 + 标签云） */
+  listSidebar: boolean
+}
+
 /** 周刊页 */
 export interface WeeklySettings {
   /** 是否在导航中显示周刊入口 */
@@ -196,6 +204,8 @@ export interface SiteSettings {
   bangumi: BangumiSettings
   /** 周刊页 */
   weekly: WeeklySettings
+  /** 首页布局 */
+  home: HomeSettings
   /** 各列表页样式 */
   pageStyles: {
     categories: string

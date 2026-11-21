@@ -136,6 +136,8 @@ export function applySiteSettings(settings: SiteSettingsDetail | null) {
     themeConfig.home = {
       ...(themeConfig.home || {}),
       mobileNoticeTicker: interaction.mobileNoticeTicker,
+      layout: settings.home?.layout || 'cards',
+      listSidebar: settings.home?.listSidebar !== false,
     }
   }
 

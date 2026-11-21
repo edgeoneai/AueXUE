@@ -1,5 +1,6 @@
 import type {
   BangumiSettings,
+  HomeSettings,
   FooterSettings,
   HeroSettings,
   InteractionSettings,
@@ -154,6 +155,15 @@ function normalizeBangumi(raw: Record<string, unknown>, fallback: BangumiSetting
   }
 }
 
+function normalizeHome(raw: Record<string, unknown>, fallback: HomeSettings): HomeSettings {
+  const layout = String(raw.layout || '').trim()
+  const allowed: HomeSettings['layout'][] = ['cards', 'list', 'timeline']
+  return {
+    layout: (allowed as string[]).includes(layout) ? (layout as HomeSettings['layout']) : fallback.layout,
+    listSidebar: bool(raw.listSidebar, fallback.listSidebar),
+  }
+}
+
 function normalizeWeekly(raw: Record<string, unknown>, fallback: WeeklySettings): WeeklySettings {
   return {
     enable: bool(raw.enable, fallback.enable),
@@ -230,6 +240,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const navbarRaw = (raw.navbar && typeof raw.navbar === 'object' ? raw.navbar : {}) as Record<string, unknown>
   const pageStylesRaw = (raw.pageStyles && typeof raw.pageStyles === 'object' ? raw.pageStyles : {}) as Record<string, unknown>
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
+  const homeRaw = (raw.home && typeof raw.home === 'object' ? raw.home : {}) as Record<string, unknown>
   const weeklyRaw = (raw.weekly && typeof raw.weekly === 'object' ? raw.weekly : {}) as Record<string, unknown>
   const bangumiRaw = (raw.bangumi && typeof raw.bangumi === 'object' ? raw.bangumi : {}) as Record<string, unknown>
   const serviceRaw = (raw.service && typeof raw.service === 'object' ? raw.service : {}) as Record<string, unknown>
@@ -269,6 +280,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
     navigationVideos: navigationVideos(raw.navigationVideos, fallback.navigationVideos),
     bangumi: normalizeBangumi(bangumiRaw, fallback.bangumi),
     weekly: normalizeWeekly(weeklyRaw, fallback.weekly),
+    home: normalizeHome(homeRaw, fallback.home),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
     pageStyles: {
       categories: str(pageStylesRaw.categories, fallback.pageStyles.categories),

@@ -294,6 +294,26 @@ const socialCount = computed(() => form.value.social.length)
     </section>
 
     <section class="site-settings__section">
+      <h2 class="site-settings__title">首页布局</h2>
+      <p class="site-settings__hint">
+        首页文章区域的呈现方式，只影响列表部分，Hero 与公告保持不变。
+      </p>
+      <div class="site-settings__grid">
+        <label class="site-settings__field">
+          <span>布局样式</span>
+          <select v-model="form.home.layout">
+            <option value="cards">卡片网格</option>
+            <option value="list">列表 + 侧栏</option>
+            <option value="timeline">时间线</option>
+          </select>
+        </label>
+      </div>
+      <div v-if="form.home.layout === 'list'" class="site-settings__checks">
+        <label><input v-model="form.home.listSidebar" type="checkbox"> 显示右侧栏（随机文章 + 标签云）</label>
+      </div>
+    </section>
+
+    <section class="site-settings__section">
       <h2 class="site-settings__title">列表页样式</h2>
       <div class="site-settings__grid">
         <label class="site-settings__field">
