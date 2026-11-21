@@ -16,7 +16,6 @@ const { loadSettings } = useSiteSettings()
 const editorRef = ref<InstanceType<typeof AdminSeriesEditor> | null>(null)
 const pageLoading = ref(true)
 const error = ref<string | null>(null)
-const notice = ref<{ type: 'success' | 'error', text: string } | null>(null)
 const initial = ref<SiteSettings>(JSON.parse(JSON.stringify(DEFAULT_SITE_SETTINGS)) as SiteSettings)
 
 onMounted(async () => {
@@ -41,7 +40,6 @@ onMounted(async () => {
 
 async function handleSave(payload: SiteSettings) {
   editorRef.value?.setSaving(true)
-  notice.value = null
   try {
     const saved = await saveSiteSettings(payload)
     const { updatedAt: _updatedAt, ...rest } = saved

@@ -12,11 +12,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [payload: SiteSettings]
-  notice: [{ type: 'success' | 'error', text: string }]
 }>()
 
 const draft = ref<SiteSettings>(JSON.parse(JSON.stringify(props.initial)) as SiteSettings)
 const saving = ref(false)
+const notice = ref<{ type: 'success' | 'error', text: string } | null>(null)
 
 watch(() => props.initial, (value) => {
   draft.value = JSON.parse(JSON.stringify(value)) as SiteSettings
@@ -30,11 +30,11 @@ function setSaving(value: boolean) {
 }
 
 function setSuccess(text: string) {
-  emit('notice', { type: 'success', text })
+  notice.value = { type: 'success', text }
 }
 
 function setError(text: string) {
-  emit('notice', { type: 'error', text })
+  notice.value = { type: 'error', text }
 }
 
 defineExpose({ setSaving, setSuccess, setError })
@@ -63,7 +63,19 @@ function moveItem(index: number, delta: number) {
   items.value.splice(target, 0, item)
 }
 
+function handleReset() {
+  notice.value = null
+  series.value = {
+    enable: true,
+    title: '系列',
+    batchSize: 10,
+    featured: true,
+    items: [],
+  }
+}
+
 function handleSave() {
+  notice.value = null
   // 丢弃空名条目，并合并同名（保留先出现的）
   const seen = new Set<string>()
   const cleaned: SeriesItem[] = []
@@ -90,6 +102,10 @@ function handleSave() {
 
 <template>
   <div class="admin-series">
+    <div v-if="notice" class="admin-series__notice" :class="`admin-series__notice--${notice.type}`">
+      {{ notice.text }}
+    </div>
+
     <section class="admin-series__section">
       <h2 class="admin-series__title">系列页</h2>
       <p class="admin-series__hint">
@@ -159,6 +175,9 @@ function handleSave() {
     </section>
 
     <div class="admin-series__actions">
+      <button type="button" class="admin-series__btn admin-series__btn--ghost" :disabled="saving" @click="handleReset">
+        恢复默认
+      </button>
       <button type="button" class="admin-series__btn admin-series__btn--primary" :disabled="saving" @click="handleSave">
         {{ saving ? '保存中…' : '保存设置' }}
       </button>
@@ -173,6 +192,24 @@ function handleSave() {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+
+  &__notice {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+
+    &--success {
+      background: #e8f7ee;
+      color: #1e7e42;
+      border: 1px solid #b7e3c7;
+    }
+
+    &--error {
+      background: #fdecea;
+      color: #c0392b;
+      border: 1px solid #f5c6c0;
+    }
+  }
 
   &__section {
     padding: 1.1rem 1.2rem;
@@ -302,18 +339,33 @@ function handleSave() {
   &__actions {
     display: flex;
     justify-content: flex-end;
+    gap: 0.75rem;
+    position: sticky;
+    bottom: 0;
+    background: var(--admin-page-bg, #f4f5f7);
+    padding: 0.85rem 0;
   }
 
   &__btn {
-    padding: 0.5rem 1.1rem;
     border-radius: 8px;
-    border: 1px solid transparent;
-    font-size: 0.875rem;
+    padding: 0.55rem 1.4rem;
+    font-size: 0.88rem;
     cursor: pointer;
+    border: 1px solid transparent;
 
     &--primary {
-      background: var(--admin-pink, #e93d6d);
+      background: #df9193;
       color: #fff;
+
+      &:hover {
+        background: #d77477;
+      }
+    }
+
+    &--ghost {
+      background: var(--admin-field-bg, #fff);
+      border-color: var(--admin-subtle-border, #ddd);
+      color: var(--admin-label-color, #333);
     }
 
     &:disabled {
