@@ -130,7 +130,6 @@ const latestDate = computed(() => issues.value[0]?.date || '')
   <div class="weekly-board">
     <header class="weekly-masthead">
       <div class="weekly-masthead__rule" aria-hidden="true" />
-      <h2 class="weekly-masthead__title">{{ title }}</h2>
       <div v-if="issues.length" class="weekly-masthead__meta">
         <span>共 {{ issues.length }} 期</span>
         <span v-if="latestDate">最新 {{ latestDate }}</span>
@@ -203,14 +202,6 @@ const latestDate = computed(() => issues.value[0]?.date || '')
     margin: 0.6rem 0;
     background: currentColor;
     opacity: 0.25;
-  }
-
-  &__title {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 800;
-    letter-spacing: 0.4em;
-    text-indent: 0.4em;
   }
 
   &__meta {

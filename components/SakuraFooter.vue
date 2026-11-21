@@ -4,7 +4,16 @@ import { useConfig } from 'valaxy'
 import { useAddonVercount } from 'valaxy-addon-vercount'
 import { isClient } from '@vueuse/core'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useSiteConfig } from 'valaxy'
 import { useDynamicLinks } from '../composables/useDynamicLinks'
+import RecentComments from './RecentComments.vue'
+
+const siteConfig = useSiteConfig()
+/** 页脚社交图标：直接复用站点配置里的 social 列表 */
+const socialLinks = computed(() =>
+  ((siteConfig.value as { social?: Array<{ name?: string, link?: string, icon?: string, color?: string }> }).social ?? [])
+    .filter(item => item?.link && item?.icon),
+)
 
 interface FooterConfig {
   icp?: string
@@ -198,6 +207,9 @@ const visitorItems = computed(() => {
 
 <template>
   <footer class="sakura-footer h-$sakura-footer-height" text="center sm" style="color:var(--va-c-text-light)">
+    <!-- 近期评论：置于页脚内容最上方 -->
+    <RecentComments class="sakura-footer-recent" />
+
     <div v-if="footer.icp" class="icp" p="y-2" v-html="footer.icp" />
 
     <SakuraCopyright />
@@ -229,12 +241,85 @@ const visitorItems = computed(() => {
       </ul>
     </nav>
 
+    <!-- 社交图标行 -->
+    <div v-if="socialLinks.length" class="sakura-footer-social">
+      <a
+        v-for="item in socialLinks"
+        :key="item.link"
+        class="sakura-footer-social__btn"
+        :href="item.link"
+        target="_blank"
+        rel="noopener"
+        :title="item.name"
+        :aria-label="item.name"
+      >
+        <span :class="item.icon" aria-hidden="true" />
+      </a>
+    </div>
+
+    <!-- RSS / MAP 快捷链接 -->
+    <p class="sakura-footer-quicknav">
+      <a href="/atom.xml">RSS</a>
+      <span aria-hidden="true">|</span>
+      <a href="/sitemap.xml">MAP</a>
+    </p>
+
     <slot />
   </footer>
 </template>
 
 <style lang="scss" scoped>
 /* 页脚友链导航：紧凑横向排列，换行自适应 */
+/* 社交图标行 */
+.sakura-footer-social {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--va-c-bg-soft);
+    color: var(--va-c-text-light);
+    text-decoration: none;
+    transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      color: #fff;
+      background: var(--va-c-primary);
+    }
+  }
+}
+
+/* RSS / MAP 快捷链接 */
+.sakura-footer-quicknav {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+  font-size: 0.75rem;
+
+  a {
+    color: var(--va-c-text-light);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--va-c-primary);
+    }
+  }
+
+  span {
+    opacity: 0.4;
+  }
+}
+
 .sakura-footer-links {
   margin-top: 0.5rem;
 
