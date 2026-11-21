@@ -122,6 +122,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/settings': RouteRecordInfo<
+      '/admin/settings',
+      '/admin/settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/archives/': RouteRecordInfo<
       '/archives/',
       '/archives',
@@ -226,7 +233,7 @@ declare module 'vue-router/auto-routes' {
    * @internal
    */
   export interface _RouteFileInfoMap {
-    'node_modules/.pnpm/valaxy-theme-sakura@0.10.2__26c2e4e40056577f3391180093fd2e8a/node_modules/valaxy-theme-sakura/pages/index.vue': {
+    'node_modules/.pnpm/valaxy-theme-sakura@0.10.2_@nuxt+kit@3.21.7_magicast@0.5.3__valaxy-addon-hitokoto@0.0.1_26c2e4e40056577f3391180093fd2e8a/node_modules/valaxy-theme-sakura/pages/index.vue': {
       routes:
         | '/'
       views:
@@ -234,7 +241,7 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'node_modules/.pnpm/valaxy@0.28.10_@babel+parse_e723e6f6577794aae27ebf6e37c7027b/node_modules/valaxy/client/pages/[...path].vue': {
+    'node_modules/.pnpm/valaxy@0.28.10_@babel+parser@7.29.7_@nuxt+kit@3.21.7_magicast@0.5.3__@types+markdown-it_e14caed0f2763ed1e768d3caa6d01654/node_modules/valaxy/client/pages/[...path].vue': {
       routes:
         | '/[...path]'
       views:
@@ -330,6 +337,14 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
+    'pages/admin/settings.vue': {
+      routes:
+        | '/admin/settings'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
     'pages/archives/index.md': {
       routes:
         | '/archives/'
@@ -402,7 +417,7 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'node_modules/.pnpm/valaxy-theme-sakura@0.10.2__26c2e4e40056577f3391180093fd2e8a/node_modules/valaxy-theme-sakura/pages/page/[page].vue': {
+    'node_modules/.pnpm/valaxy-theme-sakura@0.10.2_@nuxt+kit@3.21.7_magicast@0.5.3__valaxy-addon-hitokoto@0.0.1_26c2e4e40056577f3391180093fd2e8a/node_modules/valaxy-theme-sakura/pages/page/[page].vue': {
       routes:
         | '/page/[page]'
       views:

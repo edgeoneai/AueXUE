@@ -17,6 +17,7 @@ node_modules
 .idea/
 *.log
 .agents/
+.agent-teams/
 
 components.d.ts
 
