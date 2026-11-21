@@ -102,6 +102,12 @@ try {
   }
   runNpm(['run', 'build'])
 
+  // 构建后立刻自检产物，失败就停在 Build 阶段。
+  // 否则问题会拖到 Deploy 阶段才暴露，而那时错误信息完全指不到构建。
+  const builtIndex = join(root, config.assetsDirectory, 'index.html')
+  if (!existsSync(builtIndex))
+    throw new WranglerError(`${config.assetsDirectory}/index.html 未生成，构建未产出可用静态文件`)
+
   // Pages 专用的 _redirects 已不再使用（SPA 回退由 assets.not_found_handling 承担）。
   // Workers 会严格校验该文件并拒绝 200!/无限循环写法，这里兜底清理，避免旧产物混入部署包。
   const staleRedirects = join(root, config.assetsDirectory, '_redirects')
