@@ -19,5 +19,13 @@ watch(mergedFrontmatter, applyRouteFrontmatter, { immediate: true })
 </script>
 
 <template>
-  <div />
+  <slot name="main-content" />
 </template>
+
+<route lang="yaml">
+meta:
+  layout: bangumi
+  title: 追番
+  icon: i-ri-tv-2-line
+  comment: false
+</route>

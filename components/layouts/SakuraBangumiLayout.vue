@@ -22,15 +22,22 @@ const frontmatter = computed(() => {
   <article class="sakura-page sakura-bangumi-page">
     <header class="bangumi-page-header">
       <div class="bangumi-page-header__inner sakura-safe-padding">
-        <h1 class="bangumi-page-header__title">
-          <span :class="frontmatter.icon" aria-hidden="true" />
-          {{ frontmatter.title }}
-        </h1>
+        <div class="sakura-header-title" flex="~">
+          <SakuraTitle :fm="frontmatter" />
+        </div>
       </div>
     </header>
 
-    <div class="bangumi-page-main sakura-safe-padding">
-      <BangumiBoard />
+    <div class="bangumi-page-main">
+      <div class="content sakura-page-content">
+        <RouterView v-slot="{ Component }">
+          <component :is="Component">
+            <template #main-content>
+              <BangumiBoard />
+            </template>
+          </component>
+        </RouterView>
+      </div>
     </div>
   </article>
 </template>
@@ -45,18 +52,5 @@ const frontmatter = computed(() => {
 
 .bangumi-page-header {
   margin-bottom: 1.5rem;
-
-  &__title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-}
-
-.bangumi-page-main {
-  width: 100%;
 }
 </style>

@@ -17,12 +17,13 @@ onMounted(() => {
 /** 页面标题与归类分类由后台「站点设置 → 周刊页」决定，未取到时回落默认值 */
 const weekly = computed(() => settings.value?.weekly)
 
-const title = computed(() => {
-  if (weekly.value?.title)
-    return weekly.value.title
+const frontmatter = computed(() => {
   const routeFrontmatter = (route.meta.frontmatter || {}) as Record<string, unknown>
   const base = { ...(staticFrontmatter.value || {}), ...routeFrontmatter }
-  return String(base.title || '周刊')
+  return {
+    ...base,
+    title: weekly.value?.title || String(base.title || '周刊'),
+  }
 })
 
 const category = computed(() => weekly.value?.category || '周刊')
@@ -31,11 +32,27 @@ const enabled = computed(() => weekly.value?.enable !== false)
 
 <template>
   <article class="sakura-page sakura-weekly-page">
-    <div class="weekly-page-content sakura-safe-padding">
-      <p v-if="!enabled" class="weekly-disabled">
-        周刊页未启用，可在后台「站点设置 → 周刊页」开启。
-      </p>
-      <WeeklyMasthead v-else :title="title" :category="category" />
+    <header class="weekly-page-header">
+      <div class="weekly-page-header__inner sakura-safe-padding">
+        <div class="sakura-header-title" flex="~">
+          <SakuraTitle :fm="frontmatter" />
+        </div>
+      </div>
+    </header>
+
+    <div class="weekly-page-main">
+      <div class="content sakura-page-content">
+        <RouterView v-slot="{ Component }">
+          <component :is="Component">
+            <template #main-content>
+              <p v-if="!enabled" class="weekly-disabled">
+                周刊页未启用，可在后台「站点设置 → 周刊页」开启。
+              </p>
+              <WeeklyMasthead v-else :title="frontmatter.title" :category="category" />
+            </template>
+          </component>
+        </RouterView>
+      </div>
     </div>
   </article>
 </template>
@@ -46,6 +63,10 @@ const enabled = computed(() => weekly.value?.enable !== false)
   max-width: 880px;
   margin-inline: auto;
   padding-block: 24px;
+}
+
+.weekly-page-header {
+  margin-bottom: 1.5rem;
 }
 
 .weekly-disabled {
