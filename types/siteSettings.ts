@@ -71,12 +71,6 @@ export interface ServiceSettings {
   twikooEnvId: string
   /** 访问统计接口区域：cn = 国内节点，空 = 默认节点 */
   vercountApi: string
-  /** 音乐播放器歌单 ID（网易云） */
-  metingId: string
-  /** 音乐平台：netease / tencent / kugou 等 */
-  metingServer: string
-  /** 资源类型：playlist / album / song 等 */
-  metingType: string
   /** 一言接口区域：intl = 国际，cn = 国内 */
   hitokotoApi: string
 }

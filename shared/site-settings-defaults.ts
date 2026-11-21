@@ -93,9 +93,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   service: {
     twikooEnvId: 'https://your-twikoo/',
     vercountApi: 'cn',
-    metingId: '2489775340',
-    metingServer: 'netease',
-    metingType: 'playlist',
     hitokotoApi: 'intl',
   },
   interaction: {

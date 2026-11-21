@@ -1,6 +1,5 @@
 import { defineValaxyConfig } from 'valaxy'
 import { addonVercount } from 'valaxy-addon-vercount'
-import { addonMeting } from 'valaxy-addon-meting'
 import { addonHitokoto } from 'valaxy-addon-hitokoto'
 import { addonTwikoo } from 'valaxy-addon-twikoo'
 import { vaFoucLoader } from './plugins/va-fouc-loader'
@@ -262,19 +261,6 @@ export default defineValaxyConfig({
     }),
     addonVercount({
       api: pick(gen.service?.vercountApi, 'cn')   //访问统计
-    }),
-    addonMeting({
-      global: false,
-      props: {
-        id: pick(gen.service?.metingId, '2489775340'),    //歌单id
-        server: pick(gen.service?.metingServer, 'netease'),
-        type: pick(gen.service?.metingType, 'playlist'),
-      },
-      options: {
-        autoHidden: true,
-        animationIn: true,
-        lyricHidden: true,
-      },
     }),
     // addonBackgrounds({}),
     addonHitokoto({

@@ -191,9 +191,6 @@ function normalizeService(raw: Record<string, unknown>, fallback: ServiceSetting
   return {
     twikooEnvId: str(raw.twikooEnvId, fallback.twikooEnvId),
     vercountApi: str(raw.vercountApi, fallback.vercountApi),
-    metingId: str(raw.metingId, fallback.metingId),
-    metingServer: str(raw.metingServer, fallback.metingServer),
-    metingType: str(raw.metingType, fallback.metingType),
     hitokotoApi: str(raw.hitokotoApi, fallback.hitokotoApi),
   }
 }

@@ -375,26 +375,6 @@ const socialCount = computed(() => form.value.social.length)
             <option value="cn">国内（cn）</option>
           </select>
         </label>
-        <label class="site-settings__field">
-          <span>音乐歌单 ID</span>
-          <input v-model="form.service.metingId" type="text" placeholder="2489775340">
-        </label>
-        <label class="site-settings__field">
-          <span>音乐平台</span>
-          <select v-model="form.service.metingServer">
-            <option value="netease">网易云</option>
-            <option value="tencent">QQ 音乐</option>
-            <option value="kugou">酷狗</option>
-          </select>
-        </label>
-        <label class="site-settings__field">
-          <span>资源类型</span>
-          <select v-model="form.service.metingType">
-            <option value="playlist">歌单</option>
-            <option value="album">专辑</option>
-            <option value="song">单曲</option>
-          </select>
-        </label>
       </div>
     </section>
 
