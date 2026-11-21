@@ -7,6 +7,8 @@ interface NoticeRecord {
   id: number
   title: string
   sections_json: string
+  rotate_interval: number | null
+  allow_markdown: number | null
   updated_at: string
 }
 
@@ -22,6 +24,8 @@ function recordToDetail(row: NoticeRecord): NoticeBoardDetail {
 
   return {
     title: row.title,
+    rotateInterval: row.rotate_interval ?? 5000,
+    allowMarkdown: Boolean(row.allow_markdown),
     sections,
     updatedAt: row.updated_at,
   }
@@ -42,16 +46,20 @@ export async function upsertNotice(env: CloudflareEnv, raw: string): Promise<Not
   const normalized = parseNoticePayload(raw)
 
   await env.DB.prepare(`
-    INSERT INTO notice_board (id, title, sections_json, updated_at)
-    VALUES (?, ?, ?, datetime('now'))
+    INSERT INTO notice_board (id, title, sections_json, rotate_interval, allow_markdown, updated_at)
+    VALUES (?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(id) DO UPDATE SET
       title = excluded.title,
       sections_json = excluded.sections_json,
+      rotate_interval = excluded.rotate_interval,
+      allow_markdown = excluded.allow_markdown,
       updated_at = datetime('now')
   `).bind(
     NOTICE_ROW_ID,
     normalized.title,
     JSON.stringify(normalized.sections),
+    normalized.rotateInterval ?? 5000,
+    normalized.allowMarkdown ? 1 : 0,
   ).run()
 
   const detail = await getNotice(env)

@@ -31,7 +31,9 @@ const themeConfig = computed(() => config.value.themeConfig as {
   postList?: { defaultImage?: string | string[] }
 })
 
-const intervalMs = computed(() => props.rotateInterval || themeConfig.value.notice?.rotateInterval || 5000)
+const intervalMs = computed(() =>
+  props.rotateInterval || noticeData.value?.rotateInterval || 5000,
+)
 
 const noticeTitle = computed(() => {
   if (noticeData.value?.title)
@@ -49,10 +51,11 @@ const noticeSections = computed(() => {
 const hasPosts = computed(() => posts.value.length > 0)
 
 /**
- * 公告行 Markdown / 裸链接开关（themeConfig.notice.allowMarkdown，默认 false = 保持现状）。
- * 关闭时下面所有函数都不会被走到，公告栏输出与改动前完全一致。
+ * 公告行 Markdown / 裸链接开关。
+ * 取值来自后台「公告管理」保存到 D1 的 allowMarkdown；未设置时按 false 处理。
+ * 关闭时下面所有渲染函数都不会被走到，公告栏输出与改动前完全一致。
  */
-const allowMarkdown = computed(() => themeConfig.value.notice?.allowMarkdown === true)
+const allowMarkdown = computed(() => noticeData.value?.allowMarkdown === true)
 
 /** 行内 Markdown 标记：与上游 aiovtue notice-board-md.html 的 findRE 保持一致 */
 const NOTICE_INLINE_MARKDOWN_MARKERS_RE = /[[\]!*_`~]/

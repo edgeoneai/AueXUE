@@ -40,6 +40,8 @@ function writeLocalNotice(root: string, detail: NoticeBoardDetail) {
   mkdirSync(dirname(filePath), { recursive: true })
   writeFileSync(filePath, `${JSON.stringify({
     title: detail.title,
+    rotateInterval: detail.rotateInterval,
+    allowMarkdown: detail.allowMarkdown,
     sections: detail.sections,
     updatedAt: detail.updatedAt || new Date().toISOString(),
   }, null, 2)}\n`, 'utf8')

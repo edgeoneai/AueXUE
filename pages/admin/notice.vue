@@ -14,6 +14,8 @@ const editorRef = ref<InstanceType<typeof AdminNoticeEditor> | null>(null)
 const pageLoading = ref(true)
 const error = ref<string | null>(null)
 const title = ref('公告栏')
+const rotateInterval = ref(5000)
+const allowMarkdown = ref(false)
 const sections = ref<NoticeSection[]>([])
 
 onMounted(async () => {
@@ -26,11 +28,15 @@ onMounted(async () => {
   try {
     const data = await fetchAdminNotice()
     title.value = data.title
+    rotateInterval.value = data.rotateInterval ?? 5000
+    allowMarkdown.value = data.allowMarkdown === true
     sections.value = data.sections
   }
   catch (err) {
     if (err instanceof Error && /404|不存在/.test(err.message)) {
       title.value = '公告栏'
+      rotateInterval.value = 5000
+      allowMarkdown.value = false
       sections.value = [{
         label: '--- 主域名 ---',
         lines: [{ text: '' }],
@@ -78,6 +84,8 @@ async function handleLogout() {
       v-else-if="isAuthenticated"
       ref="editorRef"
       :initial-title="title"
+      :initial-rotate-interval="rotateInterval"
+      :initial-allow-markdown="allowMarkdown"
       :initial-sections="sections"
       @save="handleSave"
     />

@@ -7,6 +7,8 @@ import { useAdminToast } from '../../composables/useAdminToast'
 
 const props = defineProps<{
   initialTitle?: string
+  initialRotateInterval?: number
+  initialAllowMarkdown?: boolean
   initialSections?: NoticeSection[]
 }>()
 
@@ -15,6 +17,10 @@ const emit = defineEmits<{
 }>()
 
 const title = ref(String(props.initialTitle || '公告栏'))
+/** 左侧随机文章轮播间隔（毫秒） */
+const rotateInterval = ref(Math.min(60000, Math.max(1000, Number(props.initialRotateInterval) || 5000)))
+/** 公告行是否按 Markdown 解析 */
+const allowMarkdown = ref(props.initialAllowMarkdown === true)
 const sections = ref<NoticeSection[]>(cloneSections(props.initialSections || []))
 const saving = ref(false)
 const adminToast = useAdminToast()
@@ -66,6 +72,8 @@ function removeLine(sectionIndex: number, lineIndex: number) {
 function buildPayload(): NoticeBoard {
   return {
     title: title.value.trim() || '公告栏',
+    rotateInterval: Math.min(60000, Math.max(1000, Math.floor(rotateInterval.value) || 5000)),
+    allowMarkdown: allowMarkdown.value,
     sections: sections.value
       .map((section) => {
         const label = section.label.trim()
@@ -151,6 +159,14 @@ defineExpose({
       <label class="admin-notice__field admin-notice__field--full">
         <span>公告标题</span>
         <input v-model="title" type="text" placeholder="公告栏">
+      </label>
+      <label class="admin-notice__field">
+        <span>左侧文章轮播间隔（毫秒）</span>
+        <input v-model.number="rotateInterval" type="number" min="1000" max="60000" step="500" placeholder="5000">
+      </label>
+      <label class="admin-notice__field admin-notice__field--check">
+        <input v-model="allowMarkdown" type="checkbox">
+        <span>公告行按 Markdown 解析，并自动识别裸域名</span>
       </label>
     </section>
 
@@ -244,6 +260,19 @@ defineExpose({
       margin: 0;
       font-size: 0.75rem;
       color: #888;
+    }
+  }
+
+  /* 复选框行：与输入框同高对齐 */
+  &__field--check {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+
+    input[type='checkbox'] {
+      width: auto;
+      margin: 0;
     }
   }
 
