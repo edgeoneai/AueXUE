@@ -231,8 +231,8 @@ export async function upsertPost(
 
   await env.DB.prepare(`
     INSERT INTO posts (
-      slug, title, excerpt, description, date, updated, categories, tags, cover, pin_order, published, r2_key, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      slug, title, excerpt, description, date, updated, categories, tags, cover, series, pin_order, published, r2_key, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     ON CONFLICT(slug) DO UPDATE SET
       title = excluded.title,
       excerpt = excluded.excerpt,
@@ -242,6 +242,7 @@ export async function upsertPost(
       categories = excluded.categories,
       tags = excluded.tags,
       cover = excluded.cover,
+      series = excluded.series,
       pin_order = excluded.pin_order,
       published = excluded.published,
       r2_key = excluded.r2_key,
@@ -256,6 +257,7 @@ export async function upsertPost(
     categories ? JSON.stringify(categories) : null,
     tags ? JSON.stringify(tags) : null,
     frontmatter.cover ? String(frontmatter.cover) : null,
+    frontmatter.series ? String(frontmatter.series).trim() : null,
     pinOrder,
     published,
     r2Key,
