@@ -8,6 +8,7 @@ import { applySiteSettings } from './utils/applySiteSettings'
 import { useAdminAuth } from './composables/useAdminAuth'
 import { useRoute, useRouter } from 'vue-router'
 import ImageGalleryViewer from './components/ImageGalleryViewer.vue'
+import SakuraMusicPlayer from './components/SakuraMusicPlayer.vue'
 import { applyCodeBlockFold, initCodeBlockFold } from './utils/collapseCode'
 import { initCodeCopy } from './utils/copyCode'
 import { initImageGallery } from './utils/imageGallery'
@@ -145,4 +146,6 @@ watch(() => route.path, () => {
 <template>
   <ImageGalleryViewer />
   <SakuraSearch :open="sakura.search.isOpen" />
+  <!-- 固定位置音乐播放器：后台页面不显示，避免遮挡管理界面 -->
+  <SakuraMusicPlayer v-if="!isAdminPath(route.path)" />
 </template>

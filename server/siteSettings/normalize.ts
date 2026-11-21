@@ -1,6 +1,7 @@
 import type {
   BangumiSettings,
   HomeSettings,
+  MusicSettings,
   FooterSettings,
   HeroSettings,
   InteractionSettings,
@@ -156,6 +157,17 @@ function normalizeBangumi(raw: Record<string, unknown>, fallback: BangumiSetting
   }
 }
 
+function normalizeMusic(raw: Record<string, unknown>, fallback: MusicSettings): MusicSettings {
+  const position = String(raw.position || '').trim()
+  return {
+    enable: bool(raw.enable, fallback.enable),
+    server: str(raw.server, fallback.server).trim() || fallback.server,
+    type: str(raw.type, fallback.type).trim() || fallback.type,
+    id: str(raw.id, fallback.id).trim(),
+    position: position === 'right' ? 'right' : 'left',
+  }
+}
+
 function normalizeHome(raw: Record<string, unknown>, fallback: HomeSettings): HomeSettings {
   const layout = String(raw.layout || '').trim()
   const allowed: HomeSettings['layout'][] = ['cards', 'list', 'timeline']
@@ -241,6 +253,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const navbarRaw = (raw.navbar && typeof raw.navbar === 'object' ? raw.navbar : {}) as Record<string, unknown>
   const pageStylesRaw = (raw.pageStyles && typeof raw.pageStyles === 'object' ? raw.pageStyles : {}) as Record<string, unknown>
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
+  const musicRaw = (raw.music && typeof raw.music === 'object' ? raw.music : {}) as Record<string, unknown>
   const homeRaw = (raw.home && typeof raw.home === 'object' ? raw.home : {}) as Record<string, unknown>
   const weeklyRaw = (raw.weekly && typeof raw.weekly === 'object' ? raw.weekly : {}) as Record<string, unknown>
   const bangumiRaw = (raw.bangumi && typeof raw.bangumi === 'object' ? raw.bangumi : {}) as Record<string, unknown>
@@ -282,6 +295,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
     bangumi: normalizeBangumi(bangumiRaw, fallback.bangumi),
     weekly: normalizeWeekly(weeklyRaw, fallback.weekly),
     home: normalizeHome(homeRaw, fallback.home),
+    music: normalizeMusic(musicRaw, fallback.music),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
     pageStyles: {
       categories: str(pageStylesRaw.categories, fallback.pageStyles.categories),

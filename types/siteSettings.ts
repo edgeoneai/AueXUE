@@ -81,6 +81,20 @@ export interface ServiceSettings {
   hitokotoApi: string
 }
 
+/** 固定位置音乐播放器 */
+export interface MusicSettings {
+  /** 是否显示播放器 */
+  enable: boolean
+  /** 音乐平台：netease / tencent / kugou 等 */
+  server: string
+  /** 资源类型：playlist / album / song */
+  type: string
+  /** 歌单 / 专辑 / 单曲 ID */
+  id: string
+  /** 播放器停靠位置 */
+  position: 'left' | 'right'
+}
+
 /** 首页布局 */
 export interface HomeSettings {
   /** 首页文章列表样式：cards = 卡片网格；list = 列表 + 侧栏；timeline = 时间线 */
@@ -206,7 +220,21 @@ export interface SiteSettings {
   bangumi: BangumiSettings
   /** 周刊页 */
   weekly: WeeklySettings
-  /** 首页布局 */
+  /** 固定位置音乐播放器 */
+export interface MusicSettings {
+  /** 是否显示播放器 */
+  enable: boolean
+  /** 音乐平台：netease / tencent / kugou 等 */
+  server: string
+  /** 资源类型：playlist / album / song */
+  type: string
+  /** 歌单 / 专辑 / 单曲 ID */
+  id: string
+  /** 播放器停靠位置 */
+  position: 'left' | 'right'
+}
+
+/** 首页布局 */
   home: HomeSettings
   /** 各列表页样式 */
   pageStyles: {

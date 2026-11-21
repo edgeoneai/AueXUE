@@ -399,6 +399,45 @@ const socialCount = computed(() => form.value.social.length)
     </section>
 
     <section class="site-settings__section">
+      <h2 class="site-settings__title">音乐播放器</h2>
+      <p class="site-settings__hint">
+        页面角落的固定唱片按钮，点开后在面板内播放歌单。需要重新构建部署后生效。
+      </p>
+      <div class="site-settings__checks">
+        <label><input v-model="form.music.enable" type="checkbox"> 启用音乐播放器</label>
+      </div>
+      <div class="site-settings__grid">
+        <label class="site-settings__field">
+          <span>音乐平台</span>
+          <select v-model="form.music.server">
+            <option value="netease">网易云</option>
+            <option value="tencent">QQ 音乐</option>
+            <option value="kugou">酷狗</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>资源类型</span>
+          <select v-model="form.music.type">
+            <option value="playlist">歌单</option>
+            <option value="album">专辑</option>
+            <option value="song">单曲</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>歌单 / 专辑 ID</span>
+          <input v-model="form.music.id" type="text" placeholder="2489775340">
+        </label>
+        <label class="site-settings__field">
+          <span>停靠位置</span>
+          <select v-model="form.music.position">
+            <option value="left">左下角</option>
+            <option value="right">右下角</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="site-settings__section">
       <h2 class="site-settings__title">滚动与交互</h2>
       <div class="site-settings__checks">
         <label><input v-model="form.interaction.scrollDamping" type="checkbox"> 滚动阻尼</label>

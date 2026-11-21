@@ -173,6 +173,18 @@ export function applySiteSettings(settings: SiteSettingsDetail | null) {
     }
   }
 
+  // --- 音乐播放器 ---
+  if (settings.music) {
+    themeConfig.music = {
+      ...(themeConfig.music || {}),
+      enable: settings.music.enable === true,
+      server: settings.music.server,
+      type: settings.music.type,
+      id: settings.music.id,
+      position: settings.music.position,
+    }
+  }
+
   // --- 导航页抽卡视频 ---
   if (settings.navigationVideos?.length) {
     themeConfig.navigation = {
