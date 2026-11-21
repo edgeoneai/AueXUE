@@ -377,53 +377,29 @@ const socialCount = computed(() => form.value.social.length)
 
     <section class="site-settings__section">
       <h2 class="site-settings__title">滚动与交互</h2>
-      <div class="site-settings__grid">
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollDamping" type="checkbox">
-          <span>滚动阻尼</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollAnimation" type="checkbox">
-          <span>滚动动画</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollIndicator" type="checkbox">
-          <span>滚动进度指示</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollLock" type="checkbox">
-          <span>滚动锁定</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollToTop" type="checkbox">
-          <span>回到顶部按钮</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.scrollDown" type="checkbox">
-          <span>首页下滑按钮</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.postNavMerge" type="checkbox">
-          <span>合并上一篇/下一篇导航</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.tagsRainbow" type="checkbox">
-          <span>标签彩虹配色</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.interaction.mobileNoticeTicker" type="checkbox">
-          <span>移动端首页公告滚动条</span>
-        </label>
+      <div class="site-settings__checks">
+        <label><input v-model="form.interaction.scrollDamping" type="checkbox"> 滚动阻尼</label>
+        <label><input v-model="form.interaction.scrollAnimation" type="checkbox"> 滚动动画</label>
+        <label><input v-model="form.interaction.scrollIndicator" type="checkbox"> 滚动进度指示</label>
+        <label><input v-model="form.interaction.scrollLock" type="checkbox"> 滚动锁定</label>
+        <label><input v-model="form.interaction.scrollToTop" type="checkbox"> 回到顶部按钮</label>
+        <label><input v-model="form.interaction.scrollDown" type="checkbox"> 首页下滑按钮</label>
+        <label><input v-model="form.interaction.postNavMerge" type="checkbox"> 合并上一篇/下一篇导航</label>
+        <label><input v-model="form.interaction.tagsRainbow" type="checkbox"> 标签彩虹配色</label>
+        <label><input v-model="form.interaction.mobileNoticeTicker" type="checkbox"> 移动端首页公告滚动条</label>
       </div>
     </section>
 
     <section class="site-settings__section">
-      <h2 class="site-settings__title">个性化</h2>
+      <h2 class="site-settings__title">阅读体验</h2>
+      <div class="site-settings__checks">
+        <label><input v-model="form.personalize.searchEnable" type="checkbox"> 启用全文搜索</label>
+        <label><input v-model="form.personalize.fuseIgnoreLocation" type="checkbox"> 忽略匹配位置</label>
+        <label><input v-model="form.personalize.mediumZoom" type="checkbox"> 图片点击放大预览</label>
+        <label><input v-model="form.personalize.wordCount" type="checkbox"> 文章页显示字数与阅读时长</label>
+        <label><input v-model="form.personalize.taxonomy" type="checkbox"> 文章页头显示分类与标签</label>
+      </div>
       <div class="site-settings__grid">
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.personalize.searchEnable" type="checkbox">
-          <span>启用全文搜索</span>
-        </label>
         <label class="site-settings__field">
           <span>搜索实现</span>
           <select v-model="form.personalize.searchType">
@@ -434,25 +410,9 @@ const socialCount = computed(() => form.value.social.length)
           <span>模糊匹配阈值（0~1，越低越精确）</span>
           <input v-model.number="form.personalize.fuseThreshold" type="number" min="0" max="1" step="0.1">
         </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.personalize.fuseIgnoreLocation" type="checkbox">
-          <span>忽略匹配位置</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.personalize.mediumZoom" type="checkbox">
-          <span>图片点击放大预览</span>
-        </label>
         <label class="site-settings__field">
           <span>代码块折叠行数（0 = 不折叠）</span>
           <input v-model.number="form.personalize.codeFoldLineLimit" type="number" min="0" max="500">
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.personalize.wordCount" type="checkbox">
-          <span>文章页显示字数与阅读时长</span>
-        </label>
-        <label class="site-settings__field site-settings__field--check">
-          <input v-model="form.personalize.taxonomy" type="checkbox">
-          <span>文章页头显示分类与标签</span>
         </label>
       </div>
     </section>
@@ -484,19 +444,6 @@ const socialCount = computed(() => form.value.social.length)
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-
-  /* 复选框行：与输入框同高对齐 */
-  &__field--check {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.4rem;
-
-    input[type='checkbox'] {
-      width: auto;
-      margin: 0;
-    }
-  }
 
   /* 区块说明文字 */
   &__hint {
