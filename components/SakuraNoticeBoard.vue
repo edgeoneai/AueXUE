@@ -63,8 +63,13 @@ const NOTICE_ALLOWED_TAGS = new Set(['a', 'strong', 'em', 'code', 'br'])
 /** 行内标签匹配（属性值里的 > 不会被误判为标签结束） */
 const NOTICE_TAG_RE = /<\/?([a-zA-Z][a-zA-Z0-9-]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g
 
-/** 只为行内片段服务：不解析块级语法、不生成 <p>，避免撑破公告栏布局 */
-const noticeMarkdown = new MarkdownIt({ html: false, linkify: false, breaks: false })
+/**
+ * 只为行内片段服务：不解析块级语法、不生成 <p>，避免撑破公告栏布局。
+ * linkify 开启，使正文里夹带的 http(s) URL / 裸域名能自动成链
+ * （整行纯域名的场景由上层 guessNoticeUrl 先行处理，这里覆盖的是「嵌在文字中间」的情况）；
+ * 生成的链接仍会经过下方 sanitizeNoticeInlineHtml 的 href 白名单校验。
+ */
+const noticeMarkdown = new MarkdownIt({ html: false, linkify: true, breaks: false })
 
 function escapeNoticeHtml(value: string) {
   return value
@@ -172,6 +177,9 @@ function renderNoticeLine(text: string) {
       source = `[${value}](${escapeNoticeLinkTarget(value)})`
     else if (NOTICE_BARE_DOMAIN_RE.test(value))
       source = `[${value}](https://${escapeNoticeLinkTarget(value)})`
+    else if (/https?:\/\//i.test(value))
+      // 文字中间夹带 URL：原样交给 markdown-it，由 linkify 自动成链
+      source = value
     else
       return ''
   }
