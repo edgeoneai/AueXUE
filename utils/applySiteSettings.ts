@@ -113,6 +113,80 @@ export function applySiteSettings(settings: SiteSettingsDetail | null) {
     chartLength: settings.pageStyles.tagsChartLength,
   }
 
+  // --- 滚动与交互 ---
+  const interaction = settings.interaction
+  if (interaction) {
+    themeConfig.scrollDamping = interaction.scrollDamping
+    themeConfig.scrollAnimation = interaction.scrollAnimation
+    themeConfig.scrollIndicator = interaction.scrollIndicator
+    themeConfig.scrollLock = interaction.scrollLock
+    themeConfig.scrollToTop = interaction.scrollToTop
+    themeConfig.scrollDown = {
+      ...(themeConfig.scrollDown || {}),
+      enable: interaction.scrollDown,
+    }
+    themeConfig.postFooter = {
+      ...(themeConfig.postFooter || {}),
+      navigationMerge: interaction.postNavMerge,
+    }
+    themeConfig.tags = {
+      ...(themeConfig.tags || {}),
+      rainbow: interaction.tagsRainbow,
+    }
+    themeConfig.home = {
+      ...(themeConfig.home || {}),
+      mobileNoticeTicker: interaction.mobileNoticeTicker,
+    }
+  }
+
+  // --- 个性化：搜索 / 图片预览 / 代码折叠 ---
+  const personalize = settings.personalize
+  if (personalize) {
+    siteConfig.search = {
+      ...(siteConfig.search || {}),
+      enable: personalize.searchEnable,
+      type: personalize.searchType,
+    }
+    siteConfig.fuse = {
+      ...(siteConfig.fuse || {}),
+      options: {
+        ...(siteConfig.fuse?.options || {}),
+        threshold: personalize.fuseThreshold,
+        ignoreLocation: personalize.fuseIgnoreLocation,
+      },
+    }
+    siteConfig.mediumZoom = {
+      ...(siteConfig.mediumZoom || {}),
+      enable: personalize.mediumZoom,
+    }
+    siteConfig.codeFoldLineLimit = personalize.codeFoldLineLimit
+    themeConfig.post = {
+      ...(themeConfig.post || {}),
+      meta: {
+        ...(themeConfig.post?.meta || {}),
+        wordCount: personalize.wordCount,
+        taxonomy: personalize.taxonomy,
+      },
+    }
+  }
+
+  // --- 导航页抽卡视频 ---
+  if (settings.navigationVideos?.length) {
+    themeConfig.navigation = {
+      ...(themeConfig.navigation || {}),
+      randomDrawVideos: settings.navigationVideos.map(item => ({ url: item.url, weight: item.weight })),
+    }
+  }
+
+  // --- 评论与第三方服务接入 ---
+  // 注意：twikoo / vercount / meting / hitokoto 是 addons，在构建期就编译进产物，
+  // 运行时无法替换。它们由 scripts/fetch-site-settings.mjs 写入 .site-settings.local.json，
+  // 配置阶段经 loadGeneratedSiteSettings() 注入（见 valaxy.config.ts 的 addons 段），
+  // 因此后台改完需要重新构建部署才生效，与加载动画、<title> 的行为一致。
+  const service = settings.service
+  if (service)
+    siteConfig.comment = { ...(siteConfig.comment || {}), enable: Boolean(service.twikooEnvId?.trim()) }
+
   valaxyConfigRef.value = { ...config, siteConfig, themeConfig } as typeof valaxyConfigRef.value
 
   applyPrimaryColor(settings.themePrimary)

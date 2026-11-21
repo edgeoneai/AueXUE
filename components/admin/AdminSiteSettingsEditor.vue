@@ -44,10 +44,37 @@ const heroUrlsText = computed({
   },
 })
 
+/** 一言/格言：多行文本 ⇄ 数组，一行一句，每次加载随机取一句 */
+const mottoText = computed({
+  get: () => form.value.hero.motto.join('\n'),
+  set: (value: string) => {
+    const list = value.split('\n').map(item => item.trim()).filter(Boolean)
+    form.value.hero.motto = list.length ? list : ['']
+  },
+})
+
 const navbarTitleText = computed({
   get: () => form.value.navbar.title.join('|'),
   set: (value: string) => {
     form.value.navbar.title = value.split('|').map(item => item.trim()).filter(Boolean)
+  },
+})
+
+/** 抽卡视频：多行文本 ⇄ {url, weight} 数组 */
+const navigationVideosText = computed({
+  get: () => form.value.navigationVideos.map(item => `${item.url}|${item.weight}`).join('\n'),
+  set: (value: string) => {
+    const list = value
+      .split('\n')
+      .map((line) => {
+        const [url, weight] = line.split('|').map(part => part.trim())
+        if (!url)
+          return null
+        const w = Number(weight)
+        return { url, weight: Number.isFinite(w) && w > 0 ? Math.floor(w) : 1 }
+      })
+      .filter((item): item is { url: string, weight: number } => Boolean(item))
+    form.value.navigationVideos = list
   },
 })
 
@@ -213,9 +240,9 @@ const socialCount = computed(() => form.value.social.length)
           <span>首页大标题</span>
           <input v-model="form.hero.title" type="text">
         </label>
-        <label class="site-settings__field">
-          <span>格言 / 副标题</span>
-          <input v-model="form.hero.motto" type="text">
+        <label class="site-settings__field site-settings__field--wide">
+          <span>格言 / 副标题（一行一句，每次加载随机显示一句）</span>
+          <textarea v-model="mottoText" rows="3" placeholder="雨是神的烟花" />
         </label>
         <label class="site-settings__field">
           <span>播放器视频地址</span>
@@ -301,6 +328,146 @@ const socialCount = computed(() => form.value.social.length)
       </div>
     </section>
 
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">评论与接入</h2>
+      <p class="site-settings__hint">
+        这些是第三方服务的接入地址。保存后需要重新构建部署才生效（与加载动画、页面标题的行为一致）。
+      </p>
+      <div class="site-settings__grid">
+        <label class="site-settings__field">
+          <span>Twikoo 评论地址</span>
+          <input v-model="form.service.twikooEnvId" type="text" placeholder="https://your-twikoo/">
+        </label>
+        <label class="site-settings__field">
+          <span>访问统计节点</span>
+          <select v-model="form.service.vercountApi">
+            <option value="cn">国内（cn）</option>
+            <option value="">默认</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>一言接口</span>
+          <select v-model="form.service.hitokotoApi">
+            <option value="intl">国际（intl）</option>
+            <option value="cn">国内（cn）</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>音乐歌单 ID</span>
+          <input v-model="form.service.metingId" type="text" placeholder="2489775340">
+        </label>
+        <label class="site-settings__field">
+          <span>音乐平台</span>
+          <select v-model="form.service.metingServer">
+            <option value="netease">网易云</option>
+            <option value="tencent">QQ 音乐</option>
+            <option value="kugou">酷狗</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>资源类型</span>
+          <select v-model="form.service.metingType">
+            <option value="playlist">歌单</option>
+            <option value="album">专辑</option>
+            <option value="song">单曲</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">滚动与交互</h2>
+      <div class="site-settings__grid">
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollDamping" type="checkbox">
+          <span>滚动阻尼</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollAnimation" type="checkbox">
+          <span>滚动动画</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollIndicator" type="checkbox">
+          <span>滚动进度指示</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollLock" type="checkbox">
+          <span>滚动锁定</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollToTop" type="checkbox">
+          <span>回到顶部按钮</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.scrollDown" type="checkbox">
+          <span>首页下滑按钮</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.postNavMerge" type="checkbox">
+          <span>合并上一篇/下一篇导航</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.tagsRainbow" type="checkbox">
+          <span>标签彩虹配色</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.interaction.mobileNoticeTicker" type="checkbox">
+          <span>移动端首页公告滚动条</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">个性化</h2>
+      <div class="site-settings__grid">
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.personalize.searchEnable" type="checkbox">
+          <span>启用全文搜索</span>
+        </label>
+        <label class="site-settings__field">
+          <span>搜索实现</span>
+          <select v-model="form.personalize.searchType">
+            <option value="fuse">Fuse（模糊搜索）</option>
+          </select>
+        </label>
+        <label class="site-settings__field">
+          <span>模糊匹配阈值（0~1，越低越精确）</span>
+          <input v-model.number="form.personalize.fuseThreshold" type="number" min="0" max="1" step="0.1">
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.personalize.fuseIgnoreLocation" type="checkbox">
+          <span>忽略匹配位置</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.personalize.mediumZoom" type="checkbox">
+          <span>图片点击放大预览</span>
+        </label>
+        <label class="site-settings__field">
+          <span>代码块折叠行数（0 = 不折叠）</span>
+          <input v-model.number="form.personalize.codeFoldLineLimit" type="number" min="0" max="500">
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.personalize.wordCount" type="checkbox">
+          <span>文章页显示字数与阅读时长</span>
+        </label>
+        <label class="site-settings__field site-settings__field--check">
+          <input v-model="form.personalize.taxonomy" type="checkbox">
+          <span>文章页头显示分类与标签</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">导航页</h2>
+      <p class="site-settings__hint">
+        抽卡随机跳转时使用的视频，一行一个，格式为 <code>视频地址|权重</code>，权重越大越容易抽到。
+      </p>
+      <label class="site-settings__field site-settings__field--wide">
+        <span>抽卡视频</span>
+        <textarea v-model="navigationVideosText" rows="3" placeholder="/img/1.mp4|1" />
+      </label>
+    </section>
+
     <div class="site-settings__actions">
       <button type="button" class="site-settings__btn site-settings__btn--ghost" :disabled="saving" @click="handleReset">
         恢复默认
@@ -317,6 +484,27 @@ const socialCount = computed(() => form.value.social.length)
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  /* 复选框行：与输入框同高对齐 */
+  &__field--check {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+
+    input[type='checkbox'] {
+      width: auto;
+      margin: 0;
+    }
+  }
+
+  /* 区块说明文字 */
+  &__hint {
+    margin: -0.3rem 0 0.6rem;
+    font-size: 0.8125rem;
+    color: #888;
+    line-height: 1.5;
+  }
 
   &__notice {
     border-radius: 8px;
@@ -379,6 +567,11 @@ const socialCount = computed(() => form.value.social.length)
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.85rem;
+  }
+
+  /* 占满整行的字段（多行文本框等） */
+  &__field--wide {
+    grid-column: 1 / -1;
   }
 
   &__field {

@@ -1,6 +1,10 @@
 import type {
   FooterSettings,
   HeroSettings,
+  InteractionSettings,
+  NavigationVideo,
+  PersonalizeSettings,
+  ServiceSettings,
   SiteSettings,
   SiteSocialLink,
   SponsorMethod,
@@ -28,6 +32,14 @@ function num(value: unknown, fallback: number, min = Number.NEGATIVE_INFINITY): 
   if (!Number.isFinite(n))
     return fallback
   return Math.max(min, Math.floor(n))
+}
+
+/** 允许小数的数值收敛（用于 0~1 的阈值一类配置） */
+function frac(value: unknown, fallback: number, min: number, max: number): number {
+  const n = Number(value)
+  if (!Number.isFinite(n))
+    return fallback
+  return Math.min(max, Math.max(min, n))
 }
 
 /** 颜色只接受 #RGB / #RRGGBB / 具名色，避免把任意字符串写进内联样式 */
@@ -89,11 +101,20 @@ function sponsorMethods(value: unknown, fallback: SponsorMethod[]): SponsorMetho
   return list.length ? list : fallback
 }
 
+/** 一言/格言：兼容旧数据里的单个字符串，统一收敛成数组 */
+function mottoList(value: unknown, fallback: string[]): string[] {
+  if (typeof value === 'string') {
+    const list = value.split('\n').map(item => item.trim()).filter(Boolean)
+    return list.length ? list : fallback
+  }
+  return strList(value, fallback)
+}
+
 function normalizeHero(value: unknown, fallback: HeroSettings): HeroSettings {
   const raw = (value && typeof value === 'object' ? value : {}) as Record<string, unknown>
   return {
     title: str(raw.title, fallback.title),
-    motto: str(raw.motto, fallback.motto),
+    motto: mottoList(raw.motto, fallback.motto),
     urls: strList(raw.urls, fallback.urls),
     randomUrls: bool(raw.randomUrls, fallback.randomUrls),
     playerUrl: str(raw.playerUrl, fallback.playerUrl || '') || undefined,
@@ -121,6 +142,62 @@ function normalizeFooter(value: unknown, fallback: FooterSettings): FooterSettin
   }
 }
 
+function normalizeService(raw: Record<string, unknown>, fallback: ServiceSettings): ServiceSettings {
+  return {
+    twikooEnvId: str(raw.twikooEnvId, fallback.twikooEnvId),
+    vercountApi: str(raw.vercountApi, fallback.vercountApi),
+    metingId: str(raw.metingId, fallback.metingId),
+    metingServer: str(raw.metingServer, fallback.metingServer),
+    metingType: str(raw.metingType, fallback.metingType),
+    hitokotoApi: str(raw.hitokotoApi, fallback.hitokotoApi),
+  }
+}
+
+function normalizeInteraction(raw: Record<string, unknown>, fallback: InteractionSettings): InteractionSettings {
+  return {
+    scrollDamping: bool(raw.scrollDamping, fallback.scrollDamping),
+    scrollAnimation: bool(raw.scrollAnimation, fallback.scrollAnimation),
+    scrollIndicator: bool(raw.scrollIndicator, fallback.scrollIndicator),
+    scrollLock: bool(raw.scrollLock, fallback.scrollLock),
+    scrollToTop: bool(raw.scrollToTop, fallback.scrollToTop),
+    scrollDown: bool(raw.scrollDown, fallback.scrollDown),
+    postNavMerge: bool(raw.postNavMerge, fallback.postNavMerge),
+    tagsRainbow: bool(raw.tagsRainbow, fallback.tagsRainbow),
+    mobileNoticeTicker: bool(raw.mobileNoticeTicker, fallback.mobileNoticeTicker),
+  }
+}
+
+function normalizePersonalize(raw: Record<string, unknown>, fallback: PersonalizeSettings): PersonalizeSettings {
+  return {
+    searchEnable: bool(raw.searchEnable, fallback.searchEnable),
+    searchType: str(raw.searchType, fallback.searchType),
+    fuseThreshold: frac(raw.fuseThreshold, fallback.fuseThreshold, 0, 1),
+    fuseIgnoreLocation: bool(raw.fuseIgnoreLocation, fallback.fuseIgnoreLocation),
+    mediumZoom: bool(raw.mediumZoom, fallback.mediumZoom),
+    codeFoldLineLimit: Math.min(500, num(raw.codeFoldLineLimit, fallback.codeFoldLineLimit, 0)),
+    wordCount: bool(raw.wordCount, fallback.wordCount),
+    taxonomy: bool(raw.taxonomy, fallback.taxonomy),
+  }
+}
+
+/** 抽卡视频：只保留有 url 的项，weight 收敛到 1~100，缺省 1 */
+function navigationVideos(value: unknown, fallback: NavigationVideo[]): NavigationVideo[] {
+  if (!Array.isArray(value))
+    return fallback
+  const list = value
+    .map((item): NavigationVideo | null => {
+      if (!item || typeof item !== 'object')
+        return null
+      const raw = item as Record<string, unknown>
+      const url = str(raw.url).trim()
+      if (!url)
+        return null
+      return { url, weight: Math.min(100, num(raw.weight, 1, 1)) }
+    })
+    .filter((item): item is NavigationVideo => Boolean(item))
+  return list.length ? list : fallback
+}
+
 /**
  * 把任意输入规范成完整的 SiteSettings。
  * 缺失字段回落到默认值，保证前台永远拿到结构完整的对象。
@@ -133,6 +210,9 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const navbarRaw = (raw.navbar && typeof raw.navbar === 'object' ? raw.navbar : {}) as Record<string, unknown>
   const pageStylesRaw = (raw.pageStyles && typeof raw.pageStyles === 'object' ? raw.pageStyles : {}) as Record<string, unknown>
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
+  const serviceRaw = (raw.service && typeof raw.service === 'object' ? raw.service : {}) as Record<string, unknown>
+  const interactionRaw = (raw.interaction && typeof raw.interaction === 'object' ? raw.interaction : {}) as Record<string, unknown>
+  const personalizeRaw = (raw.personalize && typeof raw.personalize === 'object' ? raw.personalize : {}) as Record<string, unknown>
 
   return {
     url: str(raw.url, fallback.url).trim() || fallback.url,
@@ -161,6 +241,10 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
       subTitle: str(navbarRaw.subTitle, fallback.navbar.subTitle),
     },
     footer: normalizeFooter(raw.footer, fallback.footer),
+    service: normalizeService(serviceRaw, fallback.service),
+    interaction: normalizeInteraction(interactionRaw, fallback.interaction),
+    personalize: normalizePersonalize(personalizeRaw, fallback.personalize),
+    navigationVideos: navigationVideos(raw.navigationVideos, fallback.navigationVideos),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
     pageStyles: {
       categories: str(pageStylesRaw.categories, fallback.pageStyles.categories),
