@@ -118,6 +118,11 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     wordCount: false,
     taxonomy: false,
   },
+  bangumi: {
+    enable: false,
+    vmid: '',
+    quote: '生命不息，追番不止！',
+  },
   navigationVideos: [
     { url: '/img/1.mp4', weight: 1 },
     { url: '/img/2.mp4', weight: 2 },

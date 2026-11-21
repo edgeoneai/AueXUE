@@ -79,6 +79,16 @@ export interface ServiceSettings {
   hitokotoApi: string
 }
 
+/** 追番页（Bilibili 追番列表，构建时拉取） */
+export interface BangumiSettings {
+  /** 是否启用追番页与构建时数据拉取 */
+  enable: boolean
+  /** Bilibili 用户 UID（追番列表需空间公开） */
+  vmid: string
+  /** 页面引言 */
+  quote: string
+}
+
 /** 导航页抽卡视频 */
 export interface NavigationVideo {
   url: string
@@ -172,6 +182,8 @@ export interface SiteSettings {
   personalize: PersonalizeSettings
   /** 导航页抽卡视频（weight 越大越容易抽到） */
   navigationVideos: NavigationVideo[]
+  /** 追番页 */
+  bangumi: BangumiSettings
   /** 各列表页样式 */
   pageStyles: {
     categories: string

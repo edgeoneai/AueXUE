@@ -38,6 +38,7 @@ export const mainNavItems = [
     link: '/links',
     items: [
       { text: '导航', icon: 'i-ant-design:compass-filled', link: '/navigation' },
+      { text: '追番', icon: 'i-ri-tv-2-line', link: '/bangumi' },
       { text: '留言', icon: 'i-ant-design:message-filled', link: '/comment' },
       { text: '友链', icon: 'i-ant-design:global-outlined', link: '/links' },
     ],
@@ -81,4 +82,5 @@ export const iconSafelist = [
   'i-ri-moon-line',
   'i-ri-sun-line',
   'i-ri-translate-2',
+  'i-ri-tv-2-line',
 ]

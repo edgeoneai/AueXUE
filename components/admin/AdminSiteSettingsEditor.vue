@@ -428,6 +428,27 @@ const socialCount = computed(() => form.value.social.length)
       </label>
     </section>
 
+    <section class="site-settings__section">
+      <h2 class="site-settings__title">追番页</h2>
+      <p class="site-settings__hint">
+        数据来自 Bilibili 追番列表，构建时抓取并生成静态文件（需 B 站空间公开）。
+        修改后需要重新构建部署才生效。
+      </p>
+      <div class="site-settings__checks">
+        <label><input v-model="form.bangumi.enable" type="checkbox"> 启用追番页</label>
+      </div>
+      <div class="site-settings__grid">
+        <label class="site-settings__field">
+          <span>Bilibili UID</span>
+          <input v-model="form.bangumi.vmid" type="text" placeholder="334423445">
+        </label>
+        <label class="site-settings__field">
+          <span>页面引言</span>
+          <input v-model="form.bangumi.quote" type="text" placeholder="生命不息，追番不止！">
+        </label>
+      </div>
+    </section>
+
     <div class="site-settings__actions">
       <button type="button" class="site-settings__btn site-settings__btn--ghost" :disabled="saving" @click="handleReset">
         恢复默认

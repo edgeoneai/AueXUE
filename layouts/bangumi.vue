@@ -1,0 +1,3 @@
+<template>
+  <SakuraBangumiLayout />
+</template>

@@ -1,4 +1,5 @@
 import type {
+  BangumiSettings,
   FooterSettings,
   HeroSettings,
   InteractionSettings,
@@ -142,6 +143,16 @@ function normalizeFooter(value: unknown, fallback: FooterSettings): FooterSettin
   }
 }
 
+function normalizeBangumi(raw: Record<string, unknown>, fallback: BangumiSettings): BangumiSettings {
+  // uid 只允许数字，避免把任意字符串拼进 B 站接口 URL
+  const vmid = str(raw.vmid).trim().replace(/\D/g, '')
+  return {
+    enable: bool(raw.enable, fallback.enable),
+    vmid,
+    quote: str(raw.quote, fallback.quote),
+  }
+}
+
 function normalizeService(raw: Record<string, unknown>, fallback: ServiceSettings): ServiceSettings {
   return {
     twikooEnvId: str(raw.twikooEnvId, fallback.twikooEnvId),
@@ -210,6 +221,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
   const navbarRaw = (raw.navbar && typeof raw.navbar === 'object' ? raw.navbar : {}) as Record<string, unknown>
   const pageStylesRaw = (raw.pageStyles && typeof raw.pageStyles === 'object' ? raw.pageStyles : {}) as Record<string, unknown>
   const statusRaw = (raw.authorStatus && typeof raw.authorStatus === 'object' ? raw.authorStatus : {}) as Record<string, unknown>
+  const bangumiRaw = (raw.bangumi && typeof raw.bangumi === 'object' ? raw.bangumi : {}) as Record<string, unknown>
   const serviceRaw = (raw.service && typeof raw.service === 'object' ? raw.service : {}) as Record<string, unknown>
   const interactionRaw = (raw.interaction && typeof raw.interaction === 'object' ? raw.interaction : {}) as Record<string, unknown>
   const personalizeRaw = (raw.personalize && typeof raw.personalize === 'object' ? raw.personalize : {}) as Record<string, unknown>
@@ -245,6 +257,7 @@ export function normalizeSiteSettings(input: unknown): SiteSettings {
     interaction: normalizeInteraction(interactionRaw, fallback.interaction),
     personalize: normalizePersonalize(personalizeRaw, fallback.personalize),
     navigationVideos: navigationVideos(raw.navigationVideos, fallback.navigationVideos),
+    bangumi: normalizeBangumi(bangumiRaw, fallback.bangumi),
     itemsPerPage: Math.min(100, num(raw.itemsPerPage, fallback.itemsPerPage, 1)),
     pageStyles: {
       categories: str(pageStylesRaw.categories, fallback.pageStyles.categories),

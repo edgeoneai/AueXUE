@@ -136,6 +136,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/bangumi/': RouteRecordInfo<
+      '/bangumi/',
+      '/bangumi',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/categories/': RouteRecordInfo<
       '/categories/',
       '/categories',
@@ -241,7 +248,7 @@ declare module 'vue-router/auto-routes' {
       pathParamNames:
         | never
     }
-    'node_modules/.pnpm/valaxy@0.28.10_@babel+parser@7.29.7_@nuxt+kit@3.21.7_magicast@0.5.3__@types+markdown-it_e14caed0f2763ed1e768d3caa6d01654/node_modules/valaxy/client/pages/[...path].vue': {
+    'node_modules/.pnpm/valaxy@0.28.10_@babel+parser@7.29.7_@nuxt+kit@3.21.7_magicast@0.5.3__@types+markdown-it_e723e6f6577794aae27ebf6e37c7027b/node_modules/valaxy/client/pages/[...path].vue': {
       routes:
         | '/[...path]'
       views:
@@ -348,6 +355,14 @@ declare module 'vue-router/auto-routes' {
     'pages/archives/index.md': {
       routes:
         | '/archives/'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'pages/bangumi/index.vue': {
+      routes:
+        | '/bangumi/'
       views:
         | never
       pathParamNames:

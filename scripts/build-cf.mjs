@@ -92,6 +92,14 @@ try {
   // 先取出后台「站点设置」，让预渲染 HTML、<title> 与 FOUC 加载屏
   // 都用当前值渲染，而不是仓库配置文件里的默认值
   runNode(['scripts/fetch-site-settings.mjs'])
+  // 追番数据：B 站接口有来源校验与限流，构建时拉一次落成静态 JSON，
+  // 未启用或拉取失败都只写空数据，绝不阻断构建
+  try {
+    runNode(['scripts/fetch-bangumi.mjs'])
+  }
+  catch {
+    log('追番数据抓取失败，已跳过（不影响其它内容）')
+  }
   runNpm(['run', 'build'])
 
   // Pages 专用的 _redirects 已不再使用（SPA 回退由 assets.not_found_handling 承担）。
